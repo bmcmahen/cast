@@ -14,11 +14,14 @@ Navigate to your project directory, install Cast, and build the installed compon
 	$ component install bmcmahen/cast
 	$ component build
 
-This produces a `build.js` file inside the `build` folder. Attach this script to your HTML file.
+This produces a `build.js` file inside the `build` folder. Attach this script to your HTML file and access the constructor using `require()` within your code.
+
+	var Cast = require('bmcmahen-cast');
+	var radCast = new Cast(attributes, options);
 
 ## API
 
-### new Cast(attributes, options)
+### Cast(attributes, options)
 
 Available options include:
 
