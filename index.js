@@ -29,6 +29,7 @@ var Grid = function(attributes, options){
 	if (!(this instanceof Grid)) return new Grid(attributes, options);
 
 	// Attributes
+	attributes = attributes || {};
 	this.reset(attributes);
 
 	// Options
@@ -50,10 +51,8 @@ Emitter(Grid.prototype);
 
 // Methods
 Grid.prototype.toJSON = function(){
-	var json = [];
-	for (var i = 0, len = this.collection.length; i < len; i++){
-		json.push(this.collection[i].toJSON());
-	}
+	var i = -1, len = this.collection.length, json = [];
+	while (++i < len) json.push(this.collection[i].toJSON());
 	return json;
 };
 

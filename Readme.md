@@ -36,18 +36,6 @@ Available options include:
 		wrapper: '#selector'
 	};
 
-### .toJSON()
-
-Returns an array of your attributes with `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
-
-### .reset(attributes)
-
-Resets the Cast object with the supplied attributes.
-
-### .add(attributes)
-
-Appends attributes to the Cast object.
-
 ### .justify()
 
 Calculates the grid positions without left and right wrapper padding. Grid item width and height, and boxes per row are constant.
@@ -59,6 +47,20 @@ Calculates the grid with padding on the left and right of the wrapper. Grid item
 ### .dynamic()
 
 Calculates the grid by keeping a constant padding width and height, but implements a dynamic grid item width and height, and boxes per row. You must set `minWidth`, `maxWidth`, and `ratio` options. For square grid items, use a ratio of 1.
+
+### .toJSON()
+
+After running a layout method, calling `.toJSON()` will return the grid item collection with the `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
+
+	var json = cast.justify().toJSON();
+
+### .reset(attributes)
+
+Resets the Cast object with the supplied array.
+
+### .add(attributes)
+
+Appends attributes to the Cast object.
 
 ### .filter(field, query)
 
@@ -74,14 +76,15 @@ Restores the original attributes and sets each to hidden, false.
 
 Sorts the collection based on a `field`.
 
-	cast.sortBy('name', -1);
+	cast.sortBy('name', -1).center();
 
 ### .draw()
 
-Renders the collection into the specified wrapper element.
+Renders (or rerenders) the collection into the specified wrapper element.
 
 ## Example
 
+	```javascript
 	// Create a template in our <body>
 	// You can use any templating language that you want. Here, I'll use underscore.
 
@@ -119,6 +122,7 @@ Renders the collection into the specified wrapper element.
 		myGrid.center();
 
 	</script>
+	```
 
 ## License
 
