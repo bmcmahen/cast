@@ -26,17 +26,16 @@ var defaultOptions = {
 
 // Primary Grid constructor, contains an array of Grid Item models.
 var Grid = function(attributes, options){
-	Emitter.call(this);
-	this.collection = [];
-	for (var i = 0, len = attributes.length; i < len; i++){
-		this.collection.push(new Block(attributes[i], this));
-	}
+	if (!(this instanceof Grid)) return new Grid(attributes, options);
 
-	// Fill in our default options.
+	// Attributes
+	this.reset(attributes);
+
+	// Options
 	options = options || {};
 	for (var def in defaultOptions) {
-		if (defaultOptions.hasOwnProperty(def)) {
-			if (options[def] == null) options[def] = defaultOptions[def];
+		if (defaultOptions.hasOwnProperty(def) && options[def] == null) {
+			options[def] = defaultOptions[def];
 		}
 	}
 	this.options = options;
@@ -47,8 +46,7 @@ var Grid = function(attributes, options){
 	}
 };
 
-// Inherit our emitter methods.
-Grid.prototype = new Emitter();
+Emitter(Grid.prototype);
 
 // Methods
 Grid.prototype.toJSON = function(){
@@ -57,6 +55,19 @@ Grid.prototype.toJSON = function(){
 		json.push(this.collection[i].toJSON());
 	}
 	return json;
+};
+
+Grid.prototype.reset = function(attr){
+	this.collection = [];
+	this.add(attr);
+	return this;
+};
+
+Grid.prototype.add = function(attr){
+	for (var i = 0, len = attr.length; i < len; i++){
+		this.collection.push(new Block(attr[i], this));
+	}
+	return this;
 };
 
 // There won't be padding on the left/right of the wrapper.
@@ -135,7 +146,7 @@ Grid.prototype.dynamic = function(){
 		if (boxWidth < min) rows-- ;
 	}
 
-	var boxHeight = boxWidth * this.options.ratio;
+	var boxHeight = boxWidth * (this.options.ratio || 1);
 	var mx = (containerWidth - (rows * boxWidth) - (rows - 1) * paddingWidth) * 0.5;
 
 	for ( var i = 0, len = this.collection.length; i < len; i++ ) {
@@ -178,7 +189,6 @@ Grid.prototype.determineHeight = function(){
 //return (Math.ceil(totalNumber / bpr)) * (boxHeight * paddingHeight);
 };
 
-// XXX to do - THis should probably restore
 Grid.prototype.showAll = function(){
 	var i = this.collection.length;
 	while (i--){ this.collection[i].set({ 'hidden' : false }); }
@@ -215,7 +225,6 @@ Grid.prototype.draw = function(){
 // Events: change:attribute
 // Constructor
 var Block = function(attributes, context){
-	Emitter.call(this);
 	this.context = context;
 	attributes = attributes || {};
 	this.attributes = {};
@@ -223,8 +232,7 @@ var Block = function(attributes, context){
 	this.attributes.hidden = false;
 };
 
-// Inherit the emitter methods.
-Block.prototype = new Emitter();
+Emitter(Block.prototype);
 
 // Methods
 Block.prototype.set = function(attr){
@@ -321,6 +329,7 @@ GridItemView.prototype.redraw = function(){
 	this.changePosition().showOrHide();
 };
 
+// Do we also want to do scale3d, like isotope, for hiding items?
 GridItemView.prototype.changePosition = function(){
 	var top = this.model.get('top'),
 			left = this.model.get('left'),
@@ -338,12 +347,19 @@ GridItemView.prototype.changePosition = function(){
 };
 
 GridItemView.prototype.showOrHide = function(){
+	var el = this.el,
+			style = el.style;
+
 	if (this.model.get('hidden')) {
-		this.el.className += ' hidden';
-		this.el.setAttribute('aria-hidden', true);
+		el.className += ' hidden';
+		el.setAttribute('aria-hidden', true);
+		window.setTimeout(function(){ style.display = 'none'; }, 500);
 	} else {
-		this.el.className = this.el.className.replace( /(?:^|\s)hidden(?!\S)/g , '');
-		this.el.setAttribute('aria-hidden', false);
+		style.display = 'block';
+		window.setTimeout(function(){
+			el.className = el.className.replace( /(?:^|\s)hidden(?!\S)/g , '');
+		}, 0);
+		el.setAttribute('aria-hidden', false);
 	}
 	return this;
 };

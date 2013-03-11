@@ -9,6 +9,7 @@
 		height: 75px;
 		background: #eee;
 		opacity: 1;
+
 		-webkit-transition: all 0.5s;
 		-moz-transition: all 0.5s;
 		-ms-transition: all 0.5s;
@@ -37,10 +38,10 @@
 
 		var myGrid = new Grid(attributes, {
 			wrapper: '#wrapper',
-			template: _.template($('#grid-item-template').html())
-		})
-			.justify()
-			.draw();
+			template: _.template($('#grid-item-template').html()),
+			min: 30,
+			max: 70
+		}).justify().draw();
 
 			myGrid.on('modelSet', function(attributes){
 				console.log(attributes);
@@ -48,7 +49,7 @@
 
 		$('#name-filter').on('input', function(e){
 			var val = e.currentTarget.value;
-			myGrid.filter('name', val).sortBy('name', -1).justify();
+			myGrid.filter('name', val).justify();
 		});
 
 		$('#sort').on('click', function(e){
