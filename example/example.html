@@ -1,0 +1,58 @@
+<html>
+<head>
+	<title>grid-it example</title>
+
+	<style>
+	.grid-item {
+		position: absolute;
+		width: 75px;
+		height: 75px;
+		background: #eee;
+		opacity: 1;
+		-webkit-transition: all 0.5s;
+		-moz-transition: all 0.5s;
+		-ms-transition: all 0.5s;
+	}
+
+	.hidden {
+		opacity: 0;
+	}
+
+	</style>
+</head>
+<body>
+	<input type='text' id='name-filter'><button id='sort'>sort</button>
+	<div id='wrapper' style='width: 600px; border: 1px solid;'></div>
+
+	<script type='template' id='grid-item-template'>
+	<p> <%= name %> </p>
+	</script>
+
+	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
+	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
+	<script src='../build/build.js'></script>
+	<script>
+		var Grid = require('cast');
+		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'kat'}, {name: 'james'}, {name: 'jason'}, {name: 'chris'}, {name: 'shahab'}, {name: 'jacob'}, {name: 'the dude'}];
+
+		var myGrid = new Grid(attributes, {
+			wrapper: '#wrapper',
+			template: _.template($('#grid-item-template').html())
+		})
+			.justify()
+			.draw();
+
+		$('#name-filter').on('input', function(e){
+			var val = e.currentTarget.value;
+			myGrid.filter('name', val).sortBy('name', -1).justify();
+		});
+
+		$('#sort').on('click', function(e){
+			myGrid.sortBy('name', 1).justify();
+		});
+
+	</script>
+
+
+</body>
+</html>
