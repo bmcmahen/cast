@@ -179,9 +179,12 @@ Grid.prototype.determineHeight = function(){
 //return (Math.ceil(totalNumber / bpr)) * (boxHeight * paddingHeight);
 };
 
+// XXX to do - THis should probably restore
 Grid.prototype.showAll = function(){
 	var i = this.collection.length;
 	while (i--){ this.collection[i].set({ 'hidden' : false }); }
+	if (this.initialCollection)
+		this.collection = this.initialCollection;
 	return this;
 };
 
