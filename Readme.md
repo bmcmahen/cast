@@ -1,24 +1,24 @@
 
 # Cast.js
 
-	Supply an array, and receive grid positions for rendering the views... Or let Cast render the views for you. Inspired by [Isotope]() but written in vanilla Javascript.
+Create beautiful, animated grid layouts. Supply an array and receive grid positions for rendering your own views... Or let Cast render them for you. Inspired by [Isotope]() but written in vanilla Javascript.
 
 ## Installation
 
-	Cast can be built through the use of Components. If you don't already have Component installed, install it using NPM.
+Cast can be built through the use of Components. If you don't already have Component installed, install it using NPM.
 
-		$ npm install -g component
+	$ npm install -g component
 
-	Navigate to your directory, install it, and build it.
+Navigate to your directory, install it, and build it.
 
-    $ component install bmcmahen/grid-it
-    $ component build
+   $ component install bmcmahen/grid-it
+   $ component build
 
- 	This produces a `build.js` file in the `build` folder. Attach this script to your HTML file.
+This produces a `build.js` file in the `build` folder. Attach this script to your HTML file.
 
 ## API
 
-	- new Cast(attributes, options)
+### new Cast(attributes, options)
 
 	var options = {
 		boxWidth: Number,
@@ -32,19 +32,21 @@
 		wrapper: '#selector'
 	};
 
-	- .toJSON()
+### .toJSON()
 
-	Returns an array of your attributes with `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
+Returns an array of your attributes with `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
 
-	- .justify()
+### .justify()
 
-	Draws the grid without wrapper padding on the left or right.
+Draws the grid without wrapper padding on the left or right.
 
-	- .center()
-	Draw the grid with padding on the left and right of the wrapper.
+### .center()
 
-	- .dynamic()
-	Keeps a constant padding width and height, but implements a dynamic grid item width and height.
+Draw the grid with padding on the left and right of the wrapper.
+
+### .dynamic()
+
+Keeps a constant padding width and height, but implements a dynamic grid item width and height.
 
 	.filter(field, query)
 	Performs a (case insensitive) filter of the attribute collection based on a query string and specified field.
