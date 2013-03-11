@@ -42,6 +42,10 @@
 			.justify()
 			.draw();
 
+			myGrid.on('modelSet', function(attributes){
+				console.log(attributes);
+			});
+
 		$('#name-filter').on('input', function(e){
 			var val = e.currentTarget.value;
 			myGrid.filter('name', val).sortBy('name', -1).justify();

@@ -17,7 +17,6 @@ var testTransform = function(){
 var defaultOptions = {
 	boxWidth: 75,
 	paddingWidth: 5,
-	justified: true,
 	boxHeight: 75,
 	paddingHeight: 5,
 	minWidth: 30,
@@ -30,7 +29,7 @@ var Grid = function(attributes, options){
 	Emitter.call(this);
 	this.collection = [];
 	for (var i = 0, len = attributes.length; i < len; i++){
-		this.collection.push(new Block(attributes[i]));
+		this.collection.push(new Block(attributes[i], this));
 	}
 
 	// Fill in our default options.
@@ -217,7 +216,10 @@ Grid.prototype.draw = function(){
 // Constructor
 var Block = function(attributes, context){
 	Emitter.call(this);
-	this.attributes = attributes || {};
+	this.context = context;
+	attributes = attributes || {};
+	this.attributes = {};
+	this.set(attributes);
 	this.attributes.hidden = false;
 };
 
@@ -228,6 +230,8 @@ Block.prototype = new Emitter();
 Block.prototype.set = function(attr){
 	if (this.attributes)
 		this.previousAttributes = clone(this.attributes);
+
+	if (!attr) return;
 
 	for (var key in attr) {
 		if (attr.hasOwnProperty(key)) {

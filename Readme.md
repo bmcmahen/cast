@@ -1,7 +1,7 @@
 
 # Cast.js
 
-Create beautiful, animated grid layouts. Supply an array and receive grid positions for rendering your own views... Or let Cast render them for you. Inspired by [Isotope]() but written in vanilla Javascript.
+With Cast you can easily create beautiful, animated grid layouts. Supply an array and receive grid positions for rendering your own views... or let Cast render them for you. Cast is inspired by [Isotope](https://github.com/desandro/isotope) but with less ambition.
 
 ## Installation
 
@@ -11,14 +11,16 @@ Cast can be built through the use of Components. If you don't already have Compo
 
 Navigate to your directory, install it, and build it.
 
-   $ component install bmcmahen/grid-it
-   $ component build
+	$ component install bmcmahen/grid-it
+	$ component build
 
 This produces a `build.js` file in the `build` folder. Attach this script to your HTML file.
 
 ## API
 
 ### new Cast(attributes, options)
+
+Available options include:
 
 	var options = {
 		boxWidth: Number,
@@ -48,22 +50,27 @@ Draw the grid with padding on the left and right of the wrapper.
 
 Keeps a constant padding width and height, but implements a dynamic grid item width and height.
 
-	.filter(field, query)
-	Performs a (case insensitive) filter of the attribute collection based on a query string and specified field.
+### .filter(field, query)
 
-	.showAll()
-	Restores the original attributes and sets each to hidden, false.
+Performs a (case insensitive) filter of the attribute collection based on a query string and specified field.
 
-	.sortBy(field, 1)
-	Sorts the collection based on a `field`.
+### .showAll()
 
-	.draw()
-	Renders the collection into the specified wrapper element.
+Restores the original attributes and sets each to hidden, false.
+
+### .sortBy(field, 1)
+
+Sorts the collection based on a `field`.
+
+### .draw()
+
+Renders the collection into the specified wrapper element.
 
 ## Example
 
 	// Create a template in our <body>
 	// You can use any templating language that you want. Here, I'll use underscore.
+
 	<script type='text/template' id='grid-item-template'>
 		<p> name: <%= name %> </p>
 	</script>
