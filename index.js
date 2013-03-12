@@ -211,28 +211,6 @@ Grid.prototype.dynamic = function(){
 	return this;
 };
 
-// XXX - Buggy. Sometimes 'hidden': true isn't called. Not sure why.
-// I could probably just apply the .data(models) here, and let
-// that do the filtering for me?
-Grid.prototype.filter = function(field, query){
-	if (!this.initialCollection)
-		this.initialCollection = this.collection;
-
-	var re = new RegExp(query, 'i'),
-			filtered = new OrderedDictionary();
-
-	this.initialCollection.forEach(function(key, model, i){
-		if (re.test(model.get(field))){
-			model.set({ 'hidden' : false });
-			filtered.set(key, model);
-		} else {
-			model.set({ 'hidden' : true });
-		}
-	});
-	this.collection = filtered;
-	return this;
-};
-
 Grid.prototype.determineHeight = function(){
 //return (Math.ceil(totalNumber / bpr)) * (boxHeight * paddingHeight);
 };
