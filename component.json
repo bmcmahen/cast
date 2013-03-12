@@ -8,7 +8,8 @@
     "component/emitter": "*",
     "component/clone": "*",
     "component/bind": "*",
-    "component/type": "*"
+    "component/type": "*",
+    "bmcmahen/ordered-dictionary": "*"
   },
   "development": {},
   "license": "MIT",

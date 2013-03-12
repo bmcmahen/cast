@@ -38,15 +38,15 @@ Available options include:
 
 ### .justify()
 
-Calculates the grid positions without left and right wrapper padding. Grid item width and height, and boxes per row are constant.
+Calculates the grid positions without left and right wrapper padding. Grid item width and height, and boxes per row are constant. If `.draw()` has been called, `.justify()` will automatically rerender your views.
 
 ### .center()
 
-Calculates the grid with padding on the left and right of the wrapper. Grid item width and height, and boxes per row are constant.
+Calculates the grid with padding on the left and right of the wrapper. Grid item width and height, and boxes per row are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
 
 ### .dynamic()
 
-Calculates the grid by keeping a constant padding width and height, but implements a dynamic grid item width and height, and boxes per row. You must set `minWidth`, `maxWidth`, and `ratio` options. For square grid items, use a ratio of 1.
+Calculates the grid by keeping a constant padding width and height, but implements a dynamic grid item width and height, and boxes per row. You must set `minWidth`, `maxWidth`, and `ratio` options. For square grid items, use a ratio of 1. If `.draw()` has been called, `.dynamic()` will automatically rerender your views.
 
 ### .toJSON()
 
@@ -66,7 +66,7 @@ Appends attributes to the Cast object.
 
 Performs a (case insensitive) filter on the attribute collection based on a query string and specified field.
 
-	cast.filter('name', 'ben');
+	cast.filter('name', 'ben').center();
 
 ### .showAll()
 
@@ -80,11 +80,12 @@ Sorts the collection based on a `field`.
 
 ### .draw()
 
+	cast.dynamic().draw();
+
 Renders (or rerenders) the collection into the specified wrapper element.
 
 ## Example
 
-	```javascript
 	// Create a template in our <body>
 	// You can use any templating language that you want. Here, I'll use underscore.
 
@@ -122,7 +123,6 @@ Renders (or rerenders) the collection into the specified wrapper element.
 		myGrid.center();
 
 	</script>
-	```
 
 ## License
 

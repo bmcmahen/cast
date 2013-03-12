@@ -36,25 +36,27 @@
 		var Grid = require('cast');
 		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'kat'}, {name: 'james'}, {name: 'jason'}, {name: 'chris'}, {name: 'shahab'}, {name: 'jacob'}, {name: 'the dude'}];
 
-		var myGrid = new Grid(attributes, {
+		var myGrid = new Grid({
 			wrapper: '#wrapper',
 			template: _.template($('#grid-item-template').html()),
 			min: 30,
 			max: 70
-		}).justify().draw();
-
-			myGrid.on('modelSet', function(attributes){
-				console.log(attributes);
-			});
-
-		$('#name-filter').on('input', function(e){
-			var val = e.currentTarget.value;
-			myGrid.filter('name', val).justify();
+		}).data(attributes, function(attr){
+			return attr.name;
 		});
+
+		myGrid.justify().draw();
 
 		$('#sort').on('click', function(e){
 			myGrid.sortBy('name', 1).justify();
 		});
+
+		$('input').on('input', function(e){
+			var val = e.currentTarget.value;
+			myGrid.filter('name', val).justify();
+		});
+
+
 
 	</script>
 

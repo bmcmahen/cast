@@ -2,7 +2,8 @@
 var Emitter = require('emitter'),
 		clone = require('clone'),
 		bind = require('bind'),
-		type = require('type');
+		type = require('type'),
+		OrderedDictionary = require('ordered-dictionary');
 
 var testTransform = function(){
 	var prefixes = 'transform WebkitTransform MozTransform OTransform msTransform'.split(' ');
@@ -25,12 +26,11 @@ var defaultOptions = {
 };
 
 // Primary Grid constructor, contains an array of Grid Item models.
-var Grid = function(attributes, options){
+var Grid = function(options){
 	if (!(this instanceof Grid)) return new Grid(attributes, options);
 
 	// Attributes
-	attributes = attributes || {};
-	this.reset(attributes);
+	this.collection = new OrderedDictionary();
 
 	// Options
 	options = options || {};
@@ -49,22 +49,66 @@ var Grid = function(attributes, options){
 
 Emitter(Grid.prototype);
 
+// Allow the user to specify the unique field (like _.id) in the callback.
+// This allows us to keep an ordered dictionary of each grid model, with the
+// unique field as key. We can then more efficiently add, remove, and update
+// our models, without reconstructing all of them.
+Grid.prototype.data = function(attr, fn) {
+	var model, keys = [];
+	for (var i = 0, len = attr.length; i < len; i++){
+		if (fn) {
+			var key = fn(attr[i]);
+			keys.push(key);
+			model = this.collection.get(key);
+			if (model) {
+				model.set(attr[i]);
+			} else {
+				model = new Block(attr[i], this);
+				this.collection.set(key, model);
+			}
+
+		// If an _id isn't provided, data() simply rebuilds
+		// the collection each time it is called.
+		} else {
+			model = new Block(attr[i], this);
+			// Clear our views & clear our collection,
+			// and then set it.
+			this.collection.clear().set(i, model);
+		}
+	}
+
+	// Check to see if we should remove any values.
+	if (this.collection.length && keys.length) {
+		for (var x = 0, l = keys.length; x < l; x++) {
+			if (! this.collection.get(keys[x])) {
+				// remove our model && view
+				this.collection.remove(keys[x]);
+			}
+		}
+	}
+
+	return this;
+};
+
 // Methods
 Grid.prototype.toJSON = function(){
-	var i = -1, len = this.collection.length, json = [];
-	while (++i < len) json.push(this.collection[i].toJSON());
+	var json = [];
+	this.collection.forEach(function(key, value){
+		json.push(value.toJSON());
+	});
 	return json;
 };
 
 Grid.prototype.reset = function(attr){
-	this.collection = [];
+	this.collection.clear();
 	this.add(attr);
 	return this;
 };
 
-Grid.prototype.add = function(attr){
+Grid.prototype.add = function(attr, fn){
 	for (var i = 0, len = attr.length; i < len; i++){
-		this.collection.push(new Block(attr[i], this));
+		var key = fn ? fn(attr[i]) : i;
+		this.collection.set(key, attr[i]);
 	}
 	return this;
 };
@@ -92,14 +136,16 @@ Grid.prototype.justify = function(){
 		return boxWidth + (c * padding) + ((c - 1) * boxWidth);
 	};
 
-	for ( var i = 0, len = this.collection.length; i < len; i++ ) {
+	this.collection.forEach(function(key, model, i){
 		var r = Math.floor(i / bpr),
 				c = i % bpr,
 				left = getLeft(c, r),
 				top = ((r * boxHeight) + (r + 1) * paddingHeight);
 
-		this.collection[i].set({ 'left': left, 'top': top });
-	}
+		console.log(key, model, i);
+
+		model.set({ 'left': left, 'top': top });
+	});
 
 	return this;
 };
@@ -116,14 +162,14 @@ Grid.prototype.center = function(){
 	var bpr = Math.floor(containerWidth/(boxWidth + paddingWidth));
 	var mx = (containerWidth - (bpr * boxWidth) - (bpr - 1) * paddingWidth) * 0.5;
 
-	for ( var i = 0, len = this.collection.length; i < len; i++ ) {
+	this.collection.forEach(function(key, model, i){
 		var r = Math.floor(i / bpr),
 				c = i % bpr,
 				left = mx + (c * (boxWidth + paddingWidth)),
 				top = ((r * boxHeight) + (r + 1) * paddingHeight);
 
-		this.collection[i].set({ 'left': left, 'top': top });
-	}
+		model.set({ 'left': left, 'top': top });
+	});
 	return this;
 };
 
@@ -148,38 +194,41 @@ Grid.prototype.dynamic = function(){
 	var boxHeight = boxWidth * (this.options.ratio || 1);
 	var mx = (containerWidth - (rows * boxWidth) - (rows - 1) * paddingWidth) * 0.5;
 
-	for ( var i = 0, len = this.collection.length; i < len; i++ ) {
+	this.collection.forEach(function(id, model, i){
 		var r = Math.floor(i / rows),
 				c = i % rows,
 				left = (c * (boxWidth + paddingWidth)),
 				top = ((r * boxHeight) + (r + 1) * paddingHeight);
 
-		this.collection[i].set({
+		model.set({
 			width: boxWidth,
 			left: left,
 			top: top,
 			height: boxHeight
 		});
-	}
+	});
 
 	return this;
 };
 
+// XXX - Buggy. Sometimes 'hidden': true isn't called. Not sure why.
+// I could probably just apply the .data(models) here, and let
+// that do the filtering for me?
 Grid.prototype.filter = function(field, query){
 	if (!this.initialCollection)
 		this.initialCollection = this.collection;
 
-	var re = new RegExp(query, 'i'), filtered = [];
+	var re = new RegExp(query, 'i'),
+			filtered = new OrderedDictionary();
 
-	for (var i = 0, len = this.initialCollection.length; i < len; i++){
-		var model = this.initialCollection[i];
+	this.initialCollection.forEach(function(key, model, i){
 		if (re.test(model.get(field))){
 			model.set({ 'hidden' : false });
-			filtered.push(model);
+			filtered.set(key, model);
 		} else {
 			model.set({ 'hidden' : true });
 		}
-	}
+	});
 	this.collection = filtered;
 	return this;
 };
@@ -189,8 +238,9 @@ Grid.prototype.determineHeight = function(){
 };
 
 Grid.prototype.showAll = function(){
-	var i = this.collection.length;
-	while (i--){ this.collection[i].set({ 'hidden' : false }); }
+	this.collection.forEach(function(key, model){
+		model.set({ 'hidden' : false });
+	});
 	if (this.initialCollection)
 		this.collection = this.initialCollection;
 	return this;
@@ -287,14 +337,15 @@ var GridView = function(context){
 GridView.prototype.render = function(){
 	this.children = [];
 	this.el.innerHTML = '';
-	for (var i = 0, len = this.collection.length; i < len; i++){
+	var _this = this;
+	this.collection.forEach(function(key, model, i){
 		var cardView = new GridItemView({
-			model: this.collection[i],
-			context: this.context
+			model: model,
+			context: _this.context
 		});
-		this.children.push(cardView.render());
-		this.el.appendChild(cardView.el);
-	}
+		_this.children.push(cardView.render());
+		_this.el.appendChild(cardView.el);
+	});
 	return this;
 };
 
