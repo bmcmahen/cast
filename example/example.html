@@ -23,6 +23,7 @@
 </head>
 <body>
 	<input type='text' id='name-filter'><button id='sort'>sort</button>
+	<button id='restore'>restore</button>
 	<div id='wrapper' style='width: 600px; border: 1px solid;'></div>
 
 	<script type='template' id='grid-item-template'>
@@ -48,14 +49,18 @@
 		myGrid.justify().draw();
 
 		$('#sort').on('click', function(e){
-			myGrid.sortBy('name', 1).justify();
+			myGrid
+			.data([{name: 'ben'}, {name: 'rick'}], function(attr){
+				return attr.name;
+			}).sortBy('name', 1).justify();
 		});
 
-		$('input').on('input', function(e){
-			var val = e.currentTarget.value;
-			myGrid.filter('name', val).justify();
+		$('#restore').on('click', function(e){
+			myGrid
+				.data(attributes, function(attr){
+					return attr.name;
+				}).sortBy('name', 1).justify();
 		});
-
 
 
 	</script>

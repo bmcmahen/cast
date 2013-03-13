@@ -54,7 +54,7 @@ Emitter(Grid.prototype);
 // unique field as key. We can then more efficiently add, remove, and update
 // our models, without reconstructing all of them.
 Grid.prototype.data = function(attr, fn) {
-	var model, keys = [];
+	var model, keys = [], colLength = this.collection.length();
 	for (var i = 0, len = attr.length; i < len; i++){
 		if (fn) {
 			var key = fn(attr[i]);
@@ -71,19 +71,18 @@ Grid.prototype.data = function(attr, fn) {
 		// the collection each time it is called.
 		} else {
 			model = new Block(attr[i], this);
-			// Clear our views & clear our collection,
-			// and then set it.
 			this.collection.clear().set(i, model);
 		}
 	}
 
 	// Check to see if we should remove any values.
-	if (this.collection.length && keys.length) {
-		for (var x = 0, l = keys.length; x < l; x++) {
-			if (! this.collection.get(keys[x])) {
-				// remove our model && view
-				this.collection.remove(keys[x]);
-			}
+	if (colLength && keys.length) {
+		var _this = this, toRemove = [];
+		this.collection.forEach(function(key, model, i){
+			if (keys.indexOf(key) === -1 ) toRemove.push(key);
+		});
+		for (var x = 0, l = toRemove.length; x < l; x++){
+			this.collection.remove(toRemove[x]);
 		}
 	}
 
@@ -241,8 +240,8 @@ Grid.prototype.draw = function(){
 		this.view = new GridView(this);
 		this.supportsTransform = testTransform();
 	}
-	this.view.render();
 	this.wrapperEl.innerHTML = '';
+	this.view.render();
 	this.wrapperEl.appendChild(this.view.el);
 	return this;
 };
@@ -255,8 +254,8 @@ var Block = function(attributes, context){
 	this.context = context;
 	attributes = attributes || {};
 	this.attributes = {};
+	this.attributes.hidden = true;
 	this.set(attributes);
-	this.attributes.hidden = false;
 };
 
 Emitter(Block.prototype);
@@ -286,12 +285,16 @@ Block.prototype.get = function(key){
 	return this.attributes[key];
 };
 
+Block.prototype.destroy = function(){
+	this.emit('destroy');
+};
+
 Block.prototype.hide = function(){
-	this.set({ hide: true });
+	this.set({ hidden: true });
 };
 
 Block.prototype.show = function(){
-	this.set({ hide: false });
+	this.set({ hidden: false });
 };
 
 Block.prototype.toJSON = function(){
@@ -309,26 +312,32 @@ var GridView = function(context){
 	this.collection = context.collection;
 	this.el = document.createElement('div');
 	this.el.className = 'grid-view';
+	this.collection.on('enter', bind(this, this.renderNew));
+	this.collection.on('exit', bind(this, this.removeOld));
 };
 
 // Methods
+
 GridView.prototype.render = function(){
-	this.children = [];
-	this.el.innerHTML = '';
 	var _this = this;
 	this.collection.forEach(function(key, model, i){
-		var cardView = new GridItemView({
-			model: model,
-			context: _this.context
-		});
-		_this.children.push(cardView.render());
-		_this.el.appendChild(cardView.el);
+		_this.renderNew(model);
 	});
-	return this;
 };
 
-GridView.prototype.setHeight = function(height){
-	this.el.setAttribute('height', height);
+GridView.prototype.renderNew = function(model){
+	var cardView = new GridItemView({ model: model, context: this.context });
+	this.el.appendChild(cardView.render().el);
+	window.setTimeout(function(){
+		model.show();
+	}, 0);
+};
+
+GridView.prototype.removeOld = function(model){
+	model.hide();
+	window.setTimeout(function(){
+		model.destroy();
+	}, 500);
 };
 
 
@@ -343,18 +352,25 @@ var GridItemView = function(options){
 	this.model
 		.on('change:top', bind(this, this.changePosition))
 		.on('change:left', bind(this, this.changePosition))
-		.on('change:hidden', bind(this, this.showOrHide));
+		.on('change:hidden', bind(this, this.showOrHide))
+		.on('destroy', bind(this, this.remove));
 };
 
 // Methods
 GridItemView.prototype.render = function(){
 	this.el.innerHTML = this.template(this.model.toJSON());
-	this.redraw();
+	this.changePosition().showOrHide();
 	return this;
 };
 
-GridItemView.prototype.redraw = function(){
-	this.changePosition().showOrHide();
+GridItemView.prototype.remove = function(){
+	this.model
+		.off('change:top')
+		.off('change:left')
+		.off('change:hidden')
+		.off('destroy');
+
+	this.el.parentNode.removeChild(this.el);
 };
 
 // Do we also want to do scale3d, like isotope, for hiding items?
@@ -375,14 +391,15 @@ GridItemView.prototype.changePosition = function(){
 };
 
 GridItemView.prototype.showOrHide = function(){
-	var el = this.el,
+	var _this = this,
+			el = this.el,
 			style = el.style;
 
 	if (this.model.get('hidden')) {
 		el.className += ' hidden';
 		el.setAttribute('aria-hidden', true);
-		window.setTimeout(function(){ style.display = 'none'; }, 500);
 	} else {
+		console.log('not hidden');
 		style.display = 'block';
 		window.setTimeout(function(){
 			el.className = el.className.replace( /(?:^|\s)hidden(?!\S)/g , '');
