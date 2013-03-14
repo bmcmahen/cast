@@ -1,0 +1,9 @@
+{
+  "repo": "test/dependency",
+  "dependencies": {
+    "component/each": "*"
+  },
+  "scripts": [
+    "index.js"
+  ]
+}

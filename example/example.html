@@ -32,36 +32,23 @@
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
 	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
-	<script src='../build/build.js'></script>
+	<script src='../dist/app.js'></script>
 	<script>
-		var Grid = require('cast');
 		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'kat'}, {name: 'james'}, {name: 'jason'}, {name: 'chris'}, {name: 'shahab'}, {name: 'jacob'}, {name: 'the dude'}];
 
-		var myGrid = new Grid({
-			wrapper: '#wrapper',
-			template: _.template($('#grid-item-template').html()),
-			min: 30,
-			max: 70
-		}).data(attributes, function(attr){
-			return attr.name;
-		});
-
-		myGrid.justify().draw();
-
-		$('#sort').on('click', function(e){
-			myGrid
-			.data([{name: 'ben'}, {name: 'rick'}], function(attr){
-				return attr.name;
-			}).sortBy('name', 1).justify();
-		});
-
-		$('#restore').on('click', function(e){
-			myGrid
-				.data(attributes, function(attr){
-					return attr.name;
-				}).sortBy('name', 1).justify();
-		});
-
+		var myGrid = cast({ wrapper: '#wrapper'})
+			.data(attributes, function(attr){
+				return attr.name
+			})
+			.justify({
+				paddingWidth: 10,
+				paddingHeight: 10,
+				boxWidth: 75,
+				boxHeight: 75
+			})
+			.draw({
+				template: _.template($('#grid-item-template').html())
+			});
 
 	</script>
 

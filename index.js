@@ -27,10 +27,11 @@ var defaultOptions = {
 
 // Primary Grid constructor, contains an array of Grid Item models.
 var Grid = function(options){
-	if (!(this instanceof Grid)) return new Grid(attributes, options);
+	if (!(this instanceof Grid)) return new Grid(options);
 
 	// Attributes
 	this.collection = new OrderedDictionary();
+	this.idCounter = 0;
 
 	// Options
 	options = options || {};
@@ -39,12 +40,7 @@ var Grid = function(options){
 			options[def] = defaultOptions[def];
 		}
 	}
-	this.options = options;
-
-	if (type(options.wrapper) !== 'number') {
-		this.wrapperEl = document.querySelector(options.wrapper);
-		this.options.wrapper = this.wrapperEl.clientWidth;
-	}
+	this.setOptions(options);
 };
 
 Emitter(Grid.prototype);
@@ -54,12 +50,20 @@ Emitter(Grid.prototype);
 // unique field as key. We can then more efficiently add, remove, and update
 // our models, without reconstructing all of them.
 Grid.prototype.data = function(attr, fn) {
-	var model, keys = [], colLength = this.collection.length();
-	for (var i = 0, len = attr.length; i < len; i++){
+	var len = this.collection.length(),
+			keys = [],
+			model;
+
+	if (!fn && len) {
+		this.collection.clear();
+		len = null;
+	}
+
+	for (var i = 0; i < attr.length; i++){
 		if (fn) {
 			var key = fn(attr[i]);
-			keys.push(key);
 			model = this.collection.get(key);
+			keys.push(key);
 			if (model) {
 				model.set(attr[i]);
 			} else {
@@ -71,17 +75,18 @@ Grid.prototype.data = function(attr, fn) {
 		// the collection each time it is called.
 		} else {
 			model = new Block(attr[i], this);
-			this.collection.clear().set(i, model);
+			this.collection.set(this.uniqueId('c'), model);
 		}
 	}
 
-	// Check to see if we should remove any values.
-	if (colLength && keys.length) {
-		var _this = this, toRemove = [];
+	// XXX There's got to be a better way...
+	if (len && keys.length) {
+		var toRemove = [];
 		this.collection.forEach(function(key, model, i){
-			if (keys.indexOf(key) === -1 ) toRemove.push(key);
+			if (keys.indexOf(key) === -1 )
+				toRemove.push(key);
 		});
-		for (var x = 0, l = toRemove.length; x < l; x++){
+		for (var x = 0; x < toRemove.length; x++){
 			this.collection.remove(toRemove[x]);
 		}
 	}
@@ -98,29 +103,52 @@ Grid.prototype.toJSON = function(){
 	return json;
 };
 
-Grid.prototype.reset = function(attr){
+Grid.prototype.uniqueId = function(prefix){
+	var id = ++this.idCounter + '';
+	return prefix ? prefix + id : id;
+};
+
+Grid.prototype.reset = function(attr, fn){
 	this.collection.clear();
-	this.add(attr);
+	this.add(attr, fn);
 	return this;
 };
 
 Grid.prototype.add = function(attr, fn){
+	if (type(attr) !== 'array') attr = [attr];
 	for (var i = 0, len = attr.length; i < len; i++){
-		var key = fn ? fn(attr[i]) : i;
-		this.collection.set(key, attr[i]);
+		var key = fn ? fn(attr[i]) : this.uniqueId('c');
+		var val = new Block(attr[i], this);
+		this.collection.set(key, val);
 	}
 	return this;
+};
+
+Grid.prototype.setOptions = function(options){
+	for (var option in options) {
+		if (options.hasOwnProperty(option)) {
+			if (option === 'wrapper') {
+				this.wrapper = document.querySelector(options.wrapper);
+				this.wrapperWidth = this.wrapper.clientWidth;
+				console.log(this.wrapperWidth);
+			} else {
+				this[option] = options[option];
+			}
+		}
+	}
 };
 
 // There won't be padding on the left/right of the wrapper.
 // The grid items on the left/right will be fully aligned
 // to the left/right side of the wrapper.
-Grid.prototype.justify = function(){
-	var containerWidth = this.options.wrapper,
-			boxWidth = this.options.boxWidth,
-			paddingWidth = this.options.paddingWidth,
-			paddingHeight = this.options.paddingHeight,
-			boxHeight = this.options.boxHeight;
+Grid.prototype.justify = function(options){
+	if (options) this.setOptions(options);
+
+	var containerWidth = this.wrapperWidth,
+			boxWidth = this.boxWidth,
+			paddingWidth = this.paddingWidth,
+			paddingHeight = this.paddingHeight,
+			boxHeight = this.boxHeight;
 
 	var bpr = function(){
 		var width = (containerWidth - (boxWidth * 2));
@@ -141,8 +169,6 @@ Grid.prototype.justify = function(){
 				left = getLeft(c, r),
 				top = ((r * boxHeight) + (r + 1) * paddingHeight);
 
-		console.log(key, model, i);
-
 		model.set({ 'left': left, 'top': top });
 	});
 
@@ -151,12 +177,14 @@ Grid.prototype.justify = function(){
 
 // Ensure that there is padding on the far left and right
 // of the wrapper.
-Grid.prototype.center = function(){
-	var containerWidth = this.options.wrapper,
-			boxWidth = this.options.boxWidth,
-			boxHeight = this.options.boxHeight,
-			paddingWidth = this.options.paddingWidth,
-			paddingHeight = this.options.paddingHeight;
+Grid.prototype.center = function(options){
+	if (options) this.setOptions(options);
+
+	var containerWidth = this.wrapperWidth,
+			boxWidth = this.boxWidth,
+			boxHeight = this.boxHeight,
+			paddingWidth = this.paddingWidth,
+			paddingHeight = this.paddingHeight;
 
 	var bpr = Math.floor(containerWidth/(boxWidth + paddingWidth));
 	var mx = (containerWidth - (bpr * boxWidth) - (bpr - 1) * paddingWidth) * 0.5;
@@ -174,12 +202,13 @@ Grid.prototype.center = function(){
 
 // Keeps a constant paddingWidth and Height, but implements a
 // dynamic gridWidth and gridHeight.
-Grid.prototype.dynamic = function(){
-	var containerWidth = this.options.wrapper,
-			min = this.options.minWidth,
-			max = this.options.maxWidth,
-			paddingWidth = this.options.paddingWidth,
-			paddingHeight = this.options.paddingHeight,
+Grid.prototype.dynamic = function(options){
+	if (options) this.setOptions(options);
+	var containerWidth = this.wrapperWidth,
+			min = this.minWidth,
+			max = this.maxWidth,
+			paddingWidth = this.paddingWidth,
+			paddingHeight = this.paddingHeight,
 			boxWidth = 0,
 			rows = Math.floor(containerWidth / (min + paddingWidth));
 
@@ -190,7 +219,7 @@ Grid.prototype.dynamic = function(){
 		if (boxWidth < min) rows-- ;
 	}
 
-	var boxHeight = boxWidth * (this.options.ratio || 1);
+	var boxHeight = boxWidth * (this.ratio || 1);
 	var mx = (containerWidth - (rows * boxWidth) - (rows - 1) * paddingWidth) * 0.5;
 
 	this.collection.forEach(function(id, model, i){
@@ -214,15 +243,6 @@ Grid.prototype.determineHeight = function(){
 //return (Math.ceil(totalNumber / bpr)) * (boxHeight * paddingHeight);
 };
 
-Grid.prototype.showAll = function(){
-	this.collection.forEach(function(key, model){
-		model.set({ 'hidden' : false });
-	});
-	if (this.initialCollection)
-		this.collection = this.initialCollection;
-	return this;
-};
-
 Grid.prototype.sortBy = function(field, invert){
 	invert = invert || 1;
 	this.collection.sort(function(left, right){
@@ -235,14 +255,15 @@ Grid.prototype.sortBy = function(field, invert){
 	return this;
 };
 
-Grid.prototype.draw = function(){
+Grid.prototype.draw = function(options){
+	if (options) this.setOptions(options);
 	if (!this.view) {
 		this.view = new GridView(this);
 		this.supportsTransform = testTransform();
 	}
-	this.wrapperEl.innerHTML = '';
+	this.wrapper.innerHTML = '';
 	this.view.render();
-	this.wrapperEl.appendChild(this.view.el);
+	this.wrapper.appendChild(this.view.el);
 	return this;
 };
 
@@ -348,7 +369,8 @@ var GridItemView = function(options){
 	this.context = options.context;
 	this.el = document.createElement('div');
 	this.el.className = 'grid-item';
-	this.template = options.context.options.template;
+	this.template = options.context.template;
+	if (!this.template) throw new Error('You need to supply a template');
 	this.model
 		.on('change:top', bind(this, this.changePosition))
 		.on('change:left', bind(this, this.changePosition))
@@ -399,7 +421,6 @@ GridItemView.prototype.showOrHide = function(){
 		el.className += ' hidden';
 		el.setAttribute('aria-hidden', true);
 	} else {
-		console.log('not hidden');
 		style.display = 'block';
 		window.setTimeout(function(){
 			el.className = el.className.replace( /(?:^|\s)hidden(?!\S)/g , '');
