@@ -19,9 +19,10 @@ This produces a `build.js` file inside the `build` folder. Attach this script to
 	var Cast = require('bmcmahen-cast');
 	var radCast = new Cast(attributes, options);
 
+
 ## API
 
-### Cast(attributes, options)
+### Cast(options)
 
 Available options include:
 
@@ -35,6 +36,14 @@ Available options include:
 		template: Underscore, Handlebars, etc., template function,
 		wrapper: '#selector'
 	};
+
+### .data(attr, fn)
+
+Supply Cast with an array of attributes. Use the callback function to supply a unique identifer for each field, which will allow Cast to update, remove, and add attributes on subsequent calls.
+
+	radCast.data(attributes, function(attr){
+		return attr._id;
+	});
 
 ### .justify()
 
@@ -52,25 +61,23 @@ Calculates the grid by keeping a constant padding width and height, but implemen
 
 After running a layout method, calling `.toJSON()` will return the grid item collection with the `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
 
-	var json = cast.justify().toJSON();
+	var json = cast.data(attr).justify().toJSON();
 
-### .reset(attributes)
+### .reset(attributes, fn)
 
-Resets the Cast object with the supplied array.
+Resets the Cast object with the supplied array. Use the callback to provide a unique, constant value for the field.
 
-### .add(attributes)
+	radCast.reset(attributes, function(attr){
+		return attr._id;
+	});
+
+### .add(attributes, fn)
 
 Appends attributes to the Cast object.
 
-### .filter(field, query)
+### .remove(key)
 
-Performs a (case insensitive) filter on the attribute collection based on a query string and specified field.
-
-	cast.filter('name', 'ben').center();
-
-### .showAll()
-
-Restores the original attributes and sets each to hidden, false.
+	radCast.remove(_id);
 
 ### .sortBy(field, 1)
 
@@ -80,7 +87,10 @@ Sorts the collection based on a `field`.
 
 ### .draw()
 
-	cast.dynamic().draw();
+	cast.data(attr).center().draw({
+		wrapper: '#my-cast',
+		template: _.template($('#template').html())
+	});
 
 Renders (or rerenders) the collection into the specified wrapper element.
 
@@ -95,33 +105,32 @@ Renders (or rerenders) the collection into the specified wrapper element.
 
 	<script>
 
-		// Import the Cast module.
 		var Cast = require('bmcmahen-cast');
-
-		// Fetch (or create) some JSON.
 		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
 
-		// Instantiate a new Cast object, passing in your attributes and options.
-		var myCast = new Cast(attributes, {
+		var myCast = new Cast({
 			wrapper: '#wrapper',
-			paddingWidth: 10,
-			boxWidth: 100,
-			boxHeight: 100,
 			template: _.template($('#grid-item-template').html())
+		})
+		.data(attributes, function(attr){
+			return attr.name;
+		})
+		.justify({
+			boxHeight: 50,
+			boxWidth: 50,
+			paddingHeight: 10,
+			paddingWidth: 10
+		})
+		.sortBy('name');
+
+		myCast.on('viewRendered', function(view){
+			$(view.el).addClass('custom-class');
+			$(view.el).find('p').on('click', function(e){
+				alert('hello', view.model.get('name'));
+			});
 		});
 
-		// Specify our item positions and render
-		myCast.justify().draw();
-
-		// Sort
-		myGrid.sortBy('name', 1).justify();
-
-		// Filter
-		myGrid.filter('name', 'ben').justify();
-
-		// Change our layout
-		myGrid.center();
-
+		myCast.draw();
 	</script>
 
 ## License

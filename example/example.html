@@ -36,6 +36,8 @@
 	<script>
 		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'kat'}, {name: 'james'}, {name: 'jason'}, {name: 'chris'}, {name: 'shahab'}, {name: 'jacob'}, {name: 'the dude'}];
 
+
+
 		var myGrid = cast({ wrapper: '#wrapper'})
 			.data(attributes, function(attr){
 				return attr.name
@@ -46,7 +48,12 @@
 				boxWidth: 75,
 				boxHeight: 75
 			})
-			.draw({
+
+			myGrid.on('viewRendered', function(view){
+				console.log($(view.el).find('p').addClass('bacon'));
+			});
+
+			myGrid.draw({
 				template: _.template($('#grid-item-template').html())
 			});
 
