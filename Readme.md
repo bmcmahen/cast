@@ -22,20 +22,21 @@ This produces a `build.js` file inside the `build` folder. Attach this script to
 
 ## API
 
-### Cast(options)
+### new Cast(options)
 
 Available options include:
 
 	var options = {
 		boxWidth: Number,
-		paddingWidth: Number,
 		boxHeight: Number,
+		paddingWidth: Number,
 		paddingHeight: Number,
-		minWidth: Number,
-		maxWidth: Number,
 		template: Underscore, Handlebars, etc., template function,
-		wrapper: '#selector'
+		wrapper: '#selector',
+		wrapperWidth: Number
 	};
+
+If you are working without views, you'll need to specify the `wrapperWidth` option. If you supply a `wrapper` element, `wrapperWidth` isn't necessary.
 
 ### .data(attr, fn)
 
@@ -47,15 +48,15 @@ Supply Cast with an array of attributes. Use the callback function to supply a u
 
 ### .justify()
 
-Calculates the grid positions without left and right wrapper padding. Grid item width and height are constant. If `.draw()` has been called, `.justify()` will automatically rerender your views.
+Calculates the grid positions assuming that the wrapper has 0 padding on the left and right. Grid item width and height are constant. paddingWidth is dynamic. If `.draw()` has been called, `.justify()` will automatically rerender your views.
 
 ### .center()
 
-Calculates the grid with padding on the left and right of the wrapper. Grid item width and height are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
+Calculates the grid with dynamic width on the left and right side of the wrapper. Grid item width, height, paddingWidth, and paddingHeight are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
 
 ### .dynamic()
 
-Calculates the grid by keeping a constant padding width and height, but implements a dynamic grid item width and height, and boxes per row. You must set `minWidth`, `maxWidth`, and `ratio` options. For square grid items, use a ratio of 1. If `.draw()` has been called, `.dynamic()` will automatically rerender your views.
+Calculates the grid with a constant `paddingWidth` and `paddingHeight`, and a dynamic `boxWidth` and `boxHeight`. If `.draw()` has been called, `.dynamic()` will automatically rerender your views.
 
 ### .toJSON()
 
@@ -104,6 +105,7 @@ Renders (or rerenders) the collection into the specified wrapper element.
 ### viewCreated(view)
 ### viewRendered(view)
 ### viewDestroyed(view)
+### wrapperHeight(height)
 
 ## Example
 
