@@ -9,7 +9,8 @@
     "component/clone": "*",
     "component/bind": "*",
     "component/type": "*",
-    "bmcmahen/ordered-dictionary": "*"
+    "bmcmahen/ordered-dictionary": "*",
+    "component/indexof": "*"
   },
   "development": {},
   "license": "MIT",

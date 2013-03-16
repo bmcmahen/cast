@@ -24,7 +24,7 @@
 <body>
 	<input type='text' id='name-filter'><button id='sort'>sort</button>
 	<button id='restore'>restore</button>
-	<div id='wrapper' style='border: 1px solid; height: 500px; '></div>
+	<div id='wrapper' style='border: 1px solid; '></div>
 
 	<script type='template' id='grid-item-template'>
 	<p> <%= name %> <%= age %> </p>
@@ -41,11 +41,10 @@
 		var myGrid = cast({ wrapper: '#wrapper'})
 			.data(attributes, function(attr){
 				return attr.name
-			}).dynamic({
-				boxWidth: 100,
-				boxHeight: 100,
-				paddingWidth: 10,
-				paddingHeight: 10
+			});
+
+			myGrid.on('wrapperHeight', function(height){
+				console.log(height);
 			});
 
 			myGrid.on('viewRendered', function(view){
@@ -56,15 +55,24 @@
 				template: _.template($('#grid-item-template').html())
 			});
 
+			myGrid.justify({
+				boxWidth: 150,
+				boxHeight: 150,
+				paddingWidth: 10,
+				paddingHeight: 10
+			});
+
+
 			$('#restore').on('click', function(){
 				myGrid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
 					return attr.name;
 				}).justify();
 			});
 
+			var $wrapper = $('#wrapper');
 			$(window).on('resize', function(){
-				myGrid.dynamic({
-					wrapperWidth: $('#wrapper').width()
+				myGrid.justify({
+					wrapperWidth: $wrapper.width()
 				});
 			});
 	</script>
