@@ -156,13 +156,12 @@ describe('#dynamic()', function(){
   var attributes = [{name: 'ben', age: 28}, {name: 'kit'}, {name: 'joe'}];
   var tcast = cast().data(attributes, function(a){
     return a.name;
-  }).justify({
+  }).dynamic({
     wrapperWidth: 400,
     paddingWidth: 20,
     paddingHeight: 20,
-    minWidth: 50,
-    maxWidth: 100,
-    ratio: 1
+    boxWidth: 50,
+    boxHeight: 50
   });
   var json = tcast.toJSON();
 
@@ -181,49 +180,6 @@ describe('#dynamic()', function(){
   });
 });
 
-describe('#draw()', function(){
-  var attributes = [{name: 'ben', age: 28}, {name: 'kit'}, {name: 'joe'}];
-  var tcast = cast({
-    wrapper: '#bacon'
-  }).data(attributes, function(a){
-    return a.name;
-  }).justify({
-    wrapperWidth: 400,
-    paddingWidth: 20,
-    paddingHeight: 20,
-    minWidth: 50,
-    maxWidth: 100,
-    ratio: 1
-  });
-  var el = document.getElementById('bacon');
-  it('should render into the wrapper', function(){
-    tcast.draw();
-    var children = document.querySelectorAll('.grid-view');
-    children.length.should.equal(3);
-  });
-});
-
-describe('view created/destroyed callbacks', function(){
-  var attributes = [{name: 'ben', age: 28}, {name: 'kit'}, {name: 'joe'}];
-   var tcast = cast({
-    wrapper: '#bacon',
-    template: testTemplate
-  }).data(attributes, function(a){
-    return a.name;
-  }).justify({
-    wrapperWidth: 400,
-    paddingWidth: 20,
-    paddingHeight: 20,
-    minWidth: 50,
-    maxWidth: 100,
-    ratio: 1
-  });
-  it('should callback on view creation', function(){
-    tcast.on('viewRendered', function(view){
-      should.exist(view);
-    });
-    tcast.draw();
-  });
-});
+// I need view related tests...
 
 });
