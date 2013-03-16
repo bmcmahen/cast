@@ -1,7 +1,7 @@
 
 # Cast.js
 
-With Cast you can easily create beautiful, animated grid layouts. Supply an array and receive grid positions for rendering your own views... or let Cast render them for you. Cast is inspired by [Isotope](https://github.com/desandro/isotope) but is somewhat less ambitious.
+Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select your layout mode, and receive grid positions for rendering your own views, or let Cast automatically update and render the views for you. It's vanilla Javascript and inspired by [Isotope](https://github.com/desandro/isotope).
 
 ## Installation
 
@@ -19,6 +19,7 @@ This produces a `build.js` file inside the `build` folder. Attach this script to
 	var Cast = require('bmcmahen-cast');
 	var radCast = new Cast(attributes, options);
 
+Alternatively, use `app.js` located in the `dist` folder. Cast will be available under the global variable `cast`.
 
 ## API
 
