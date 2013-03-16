@@ -47,11 +47,11 @@ Supply Cast with an array of attributes. Use the callback function to supply a u
 
 ### .justify()
 
-Calculates the grid positions without left and right wrapper padding. Grid item width and height, and boxes per row are constant. If `.draw()` has been called, `.justify()` will automatically rerender your views.
+Calculates the grid positions without left and right wrapper padding. Grid item width and height are constant. If `.draw()` has been called, `.justify()` will automatically rerender your views.
 
 ### .center()
 
-Calculates the grid with padding on the left and right of the wrapper. Grid item width and height, and boxes per row are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
+Calculates the grid with padding on the left and right of the wrapper. Grid item width and height are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
 
 ### .dynamic()
 
@@ -77,7 +77,7 @@ Appends attributes to the Cast object.
 
 ### .remove(key)
 
-	radCast.remove(_id);
+	radCast.remove('a_document_id');
 
 ### .sortBy(field, 1)
 
@@ -93,6 +93,17 @@ Sorts the collection based on a `field`.
 	});
 
 Renders (or rerenders) the collection into the specified wrapper element.
+
+## Events
+
+### enter(model)
+
+	 cast.on('enter', function(model){ });
+
+### exit(model)
+### viewCreated(view)
+### viewRendered(view)
+### viewDestroyed(view)
 
 ## Example
 
@@ -126,7 +137,7 @@ Renders (or rerenders) the collection into the specified wrapper element.
 		myCast.on('viewRendered', function(view){
 			$(view.el).addClass('custom-class');
 			$(view.el).find('p').on('click', function(e){
-				alert('hello', view.model.get('name'));
+				alert('hello'+ view.model.get('name'));
 			});
 		});
 

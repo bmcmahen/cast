@@ -3,7 +3,7 @@
 	<title>grid-it example</title>
 
 	<style>
-	.grid-item {
+	.cast-item {
 		position: absolute;
 		width: 75px;
 		height: 75px;
@@ -24,30 +24,29 @@
 <body>
 	<input type='text' id='name-filter'><button id='sort'>sort</button>
 	<button id='restore'>restore</button>
-	<div id='wrapper' style='width: 600px; border: 1px solid;'></div>
+	<div id='wrapper' style='border: 1px solid; height: 500px; '></div>
 
 	<script type='template' id='grid-item-template'>
-	<p> <%= name %> </p>
+	<p> <%= name %> <%= age %> </p>
 	</script>
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
 	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
 	<script src='../dist/app.js'></script>
 	<script>
-		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'kat'}, {name: 'james'}, {name: 'jason'}, {name: 'chris'}, {name: 'shahab'}, {name: 'jacob'}, {name: 'the dude'}];
+		var attributes = [{name: 'ben', age: 28}, {name: 'kit', age: 28}, {name: 'rick', age: 32}, {name: 'kat', age: 33}, {name: 'james', age: 35}, {name: 'jay', age: 35}, {name: 'joe', age: 35}, {name: 'bob', age: 35}, {name: 'carver', age: 35}, {name: 'doogie', age: 35}, {name: 'doug', age: 35}];
 
 
 
 		var myGrid = cast({ wrapper: '#wrapper'})
 			.data(attributes, function(attr){
 				return attr.name
-			})
-			.justify({
+			}).dynamic({
+				boxWidth: 100,
+				boxHeight: 100,
 				paddingWidth: 10,
-				paddingHeight: 10,
-				boxWidth: 75,
-				boxHeight: 75
-			})
+				paddingHeight: 10
+			});
 
 			myGrid.on('viewRendered', function(view){
 				console.log($(view.el).find('p').addClass('bacon'));
@@ -57,6 +56,17 @@
 				template: _.template($('#grid-item-template').html())
 			});
 
+			$('#restore').on('click', function(){
+				myGrid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
+					return attr.name;
+				}).justify();
+			});
+
+			$(window).on('resize', function(){
+				myGrid.dynamic({
+					wrapperWidth: $('#wrapper').width()
+				});
+			});
 	</script>
 
 

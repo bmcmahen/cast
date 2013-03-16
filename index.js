@@ -174,20 +174,20 @@ Cast.prototype.justify = function(options){
 Cast.prototype.center = function(options){
   if (options) this.setOptions(options);
 
-  var containerWidth = this.wrapperWidth,
-      boxWidth = this.boxWidth,
-      boxHeight = this.boxHeight,
-      paddingWidth = this.paddingWidth,
-      paddingHeight = this.paddingHeight;
+  var cw = this.wrapperWidth
+    , w = this.boxWidth
+    , h = this.boxHeight
+    , pw = this.paddingWidth
+    , ph = this.paddingHeight;
 
-  var bpr = Math.floor(containerWidth/(boxWidth + paddingWidth));
-  var mx = (containerWidth - (bpr * boxWidth) - (bpr - 1) * paddingWidth) * 0.5;
+  var bpr = Math.floor(cw/(w + pw));
+  var mx = (cw - (bpr * w) - (bpr - 1) * pw) * 0.5;
 
   this.collection.forEach(function(key, model, i){
-    var r = Math.floor(i / bpr),
-        c = i % bpr,
-        left = mx + (c * (boxWidth + paddingWidth)),
-        top = ((r * boxHeight) + (r + 1) * paddingHeight);
+    var r = Math.floor(i / bpr)
+      , c = i % bpr
+      , left = mx + (c * (w + pw))
+      , top = (r * h) + (r + 1) * ph;
 
     model.set({ 'left': left, 'top': top });
   });
@@ -198,36 +198,30 @@ Cast.prototype.center = function(options){
 // dynamic CastWidth and CastHeight.
 Cast.prototype.dynamic = function(options){
   if (options) this.setOptions(options);
-  var containerWidth = this.wrapperWidth,
-      min = this.minWidth,
-      max = this.maxWidth,
-      paddingWidth = this.paddingWidth,
-      paddingHeight = this.paddingHeight,
-      boxWidth = 0,
-      rows = Math.floor(containerWidth / (min + paddingWidth));
+  var cw = this.wrapperWidth
+    , w = this.boxWidth
+    , h = this.boxHeight
+    , pw = this.paddingWidth
+    , ph = this.paddingHeight;
 
-  // Check to ensure that this doesn't do anything infinite...
-  while (boxWidth < min || boxWidth > max) {
-    boxWidth = (containerWidth - (rows * paddingWidth)) / rows;
-    if (boxWidth > max) rows++ ;
-    if (boxWidth < min) rows-- ;
-  }
-
-  var boxHeight = boxWidth * (this.ratio || 1);
-  var mx = (containerWidth - (rows * boxWidth) - (rows - 1) * paddingWidth) * 0.5;
+  var bpr = Math.floor(cw / ( w + pw ));
+  var newWidth = (cw - (bpr * pw)) / bpr;
+  var newHeight = ( newWidth / w ) * h;
+  var mx = (cw - (bpr * newWidth) - (bpr - 1) * pw) * 0.5;
 
   this.collection.forEach(function(id, model, i){
-    var r = Math.floor(i / rows),
-        c = i % rows,
-        left = (c * (boxWidth + paddingWidth)),
-        top = ((r * boxHeight) + (r + 1) * paddingHeight);
+     var r = Math.floor(i / bpr)
+        , c = i % bpr
+        , left = mx + (c * (newWidth + pw))
+        , top = (r * newHeight) + (r + 1) * ph;
 
     model.set({
-      width: boxWidth,
+      width: newWidth,
       left: left,
       top: top,
-      height: boxHeight
+      height: newHeight
     });
+
   });
   return this;
 };
@@ -276,6 +270,8 @@ Emitter(Block.prototype);
 
 // Methods
 Block.prototype.set = function(attr){
+  var changed = false;
+
   if (this.attributes)
     this.previousAttributes = clone(this.attributes);
 
@@ -287,12 +283,18 @@ Block.prototype.set = function(attr){
       if (this.previousAttributes) {
         if (this.attributes[key] !== this.previousAttributes[key]) {
           this.emit('change:'+ key, attr[key]);
+          // XXX Ugly. Is this necessary? We are trying to
+          // prevent rerending of our cast-item-view unless
+          // non-position related attributes change.
+          if (key !== 'left' && key !== 'top' && key !== 'hidden')
+            changed = true;
         }
       } else {
         this.emit('change:'+ key, attr[key]);
       }
     }
   }
+  if (changed) this.emit('change:attribute');
 };
 
 Block.prototype.get = function(key){
@@ -367,6 +369,7 @@ var CastItemView = function(options){
     .on('change:top', bind(this, this.changePosition))
     .on('change:left', bind(this, this.changePosition))
     .on('change:hidden', bind(this, this.showOrHide))
+    .on('change:attribute', bind(this, this.render))
     .on('destroy', bind(this, this.remove));
   this.context.emit('viewCreated', this);
 };
@@ -393,7 +396,12 @@ CastItemView.prototype.remove = function(){
 CastItemView.prototype.changePosition = function(){
   var top = this.model.get('top'),
       left = this.model.get('left'),
-      style = this.el.style;
+      style = this.el.style,
+      width = this.model.get('width'),
+      height = this.model.get('height');
+
+  style.width = width;
+  style.height = height;
 
   if (this.context.supportsTransform){
     style.webkitTransform = style.MozTransform = 'translate3d('+left+'px,'+top+'px, 0)';
