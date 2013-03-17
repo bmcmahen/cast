@@ -1004,8 +1004,8 @@ CastItemView.prototype.changePosition = function(){
     , width = this.model.get('width')
     , height = this.model.get('height');
 
-  style.width = width;
-  style.height = height;
+  style.width = width + 'px';
+  style.height = height + 'px';
 
   if (this.context.supportsTransform){
     style.webkitTransform = style.MozTransform = 'translate3d('+left+'px,'+top+'px, 0)';
@@ -1013,8 +1013,8 @@ CastItemView.prototype.changePosition = function(){
     return this;
   }
 
-  style.top = top;
-  style.left = left;
+  style.top = top + 'px';
+  style.left = left + 'px';
   return this;
 };
 
