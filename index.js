@@ -291,16 +291,11 @@ Block.prototype.set = function(attr){
     if (attr.hasOwnProperty(key)) {
       this.attributes[key] = attr[key];
       if (this.previousAttributes) {
-        if (this.attributes[key] !== this.previousAttributes[key]) {
-          this.emit('change:'+ key, attr[key]);
-          // XXX Ugly. Is this necessary? We are trying to
-          // prevent rerending of our cast-item-view unless
-          // non-position related attributes change.
-          if (key !== 'left' && key !== 'top' && key !== 'hidden')
-            changed = true;
+        if (this.attributes[key] !== this.previousAttributes[key]){
+          changed = true;
         }
       } else {
-        this.emit('change:'+ key, attr[key]);
+        changed = true;
       }
     }
   }
@@ -377,9 +372,6 @@ var CastItemView = function(options){
   this.template = options.context.template;
   if (!this.template) throw new Error('You need to supply a template');
   this.model
-    .on('change:top', bind(this, this.changePosition))
-    .on('change:left', bind(this, this.changePosition))
-    .on('change:hidden', bind(this, this.showOrHide))
     .on('change:attribute', bind(this, this.render))
     .on('destroy', bind(this, this.remove));
   this.context.emit('viewCreated', this);
@@ -395,16 +387,13 @@ CastItemView.prototype.render = function(){
 
 CastItemView.prototype.remove = function(){
   this.model
-    .off('change:top')
-    .off('change:left')
-    .off('change:hidden')
     .off('change:attribute')
     .off('destroy');
   this.context.emit('viewDestroyed', this);
   this.el.parentNode.removeChild(this.el);
 };
 
-// Do we also want to do scale3d, like isotope, for hiding items?
+// Should we also use scale3d (like isotope?)
 CastItemView.prototype.changePosition = function(){
   var top = this.model.get('top')
     , left = this.model.get('left')
