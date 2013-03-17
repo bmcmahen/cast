@@ -108,7 +108,7 @@ Cast.prototype.reset = function(attr, fn){
 
 Cast.prototype.add = function(attr, fn){
   if (type(attr) !== 'array') attr = [attr];
-  for (var i = 0, len = attr.length; i < len; i++){
+  for (var i = 0; i < attr.length; i++){
     var key = fn ? fn(attr[i]) : this.uniqueId('c');
     var val = new Block(attr[i], this);
     this.collection.set(key, val);
@@ -193,7 +193,12 @@ Cast.prototype.center = function(options){
       , left = mx + (c * (w + pw))
       , top = (r * h) + (r + 1) * ph;
 
-    model.set({ 'left': left, 'top': top, 'width': w, 'height': h });
+    model.set({
+      'left': left,
+      'top': top,
+      'width': w,
+      'height': h
+    });
   });
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
@@ -237,10 +242,6 @@ Cast.prototype.dynamic = function(options){
   var wrapperHeight = Math.ceil(t / bpr) * (newHeight + ph)  + ph;
   this.emit('wrapperHeight', wrapperHeight);
   return this;
-};
-
-Cast.prototype.determineHeight = function(){
-//return (Math.ceil(totalNumber / bpr)) * (boxHeight * paddingHeight);
 };
 
 Cast.prototype.sortBy = function(field, invert){
