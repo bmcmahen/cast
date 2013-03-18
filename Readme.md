@@ -110,6 +110,22 @@ Renders (or rerenders) the collection into the specified wrapper element.
 ### viewDestroyed(view)
 ### wrapperHeight(height)
 
+## CSS for animations
+
+	.cast-item {
+		position: absolute;
+		opacity: 1;
+		-webkit-transition: opacity 0.5s, -webkit-transform 0.5s;
+		-moz-transition: opacity 0.5s, -moz-transform 0.5s;
+		-ms-transition: opacity 0.5s, -ms-transform 0.5s;
+		-o-transition: opacity 0.5s, -o-transform 0.5s;
+	}
+
+	.cast-item.hidden {
+		opacity: 0;
+	}
+
+
 ## Example
 
 	// Create a template in our <body>
