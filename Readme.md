@@ -112,6 +112,8 @@ Renders (or rerenders) the collection into the specified wrapper element.
 
 ## CSS for animations
 
+The following CSS will provide animations for opacity and positions. You can also choose to animate the `width` and `height` attributes if you're using the dynamic layout mode, but this will signficantly reduce performance in some browsers.
+
 	.cast-item {
 		position: absolute;
 		opacity: 1;
