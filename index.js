@@ -274,8 +274,7 @@ Cast.prototype.draw = function(options){
 // Constructor
 var Block = function(attributes, context){
   this.context = context;
-  this.attributes = {};
-  this.attributes.hidden = true;
+  this.attributes = { hidden: true };
   if (attributes) this.set(attributes);
 };
 
@@ -285,17 +284,12 @@ Emitter(Block.prototype);
 Block.prototype.set = function(attr){
   var changed = false;
   if (!attr) return;
-  if (this.attributes)
-    this.previousAttributes = clone(this.attributes);
+  this.previousAttributes = clone(this.attributes);
 
   for (var key in attr) {
     if (attr.hasOwnProperty(key)) {
       this.attributes[key] = attr[key];
-      if (this.previousAttributes) {
-        if (this.attributes[key] !== this.previousAttributes[key]){
-          changed = true;
-        }
-      } else {
+      if (this.attributes[key] !== this.previousAttributes[key]){
         changed = true;
       }
     }
