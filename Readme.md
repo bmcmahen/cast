@@ -19,7 +19,7 @@ Navigate to your project directory, install Cast, and build the installed compon
 This produces a `build.js` file inside the `build` folder. Attach this script to your HTML file and access the constructor using `require()` within your code.
 
 	var Cast = require('bmcmahen-cast');
-	var radCast = new Cast(attributes, options);
+	var cast = new Cast(options);
 
 Alternatively, use `app.js` located in the `dist` folder. Cast will be available under the global variable `cast`.
 
@@ -45,7 +45,7 @@ If you are working without views, you'll need to specify the `wrapperWidth` opti
 
 Supply Cast with an array of attributes. Use the callback function to supply a unique identifer for each field, which will allow Cast to update, remove, and add attributes on subsequent calls.
 
-	radCast.data(attributes, function(attr){
+	cast.data(attributes, function(attr){
 		return attr._id;
 	});
 
@@ -71,7 +71,7 @@ After running a layout method, calling `.toJSON()` will return the grid item col
 
 Resets the Cast object with the supplied array. Use the callback to provide a unique, constant value for the field.
 
-	radCast.reset(attributes, function(attr){
+	cast.reset(attributes, function(attr){
 		return attr._id;
 	});
 
@@ -81,7 +81,7 @@ Appends attributes to the Cast object.
 
 ### .remove(key)
 
-	radCast.remove('a_document_id');
+	cast.remove('a_document_id');
 
 ### .sortBy(field, 1)
 
