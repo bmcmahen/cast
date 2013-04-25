@@ -4,18 +4,8 @@ var Emitter = require('emitter')
   , bind = require('bind')
   , type = require('type')
   , OrderedDictionary = require('ordered-dictionary')
-  , indexOf = require('indexof');
-
-// Determine whehter or not we can use 3d/2d transforms
-var testTransform = function(){
-  var prefixes = 'transform WebkitTransform MozTransform OTransform msTransform'.split(' ');
-    for(var i = 0; i < prefixes.length; i++) {
-      if(document.createElement('div').style[prefixes[i]] !== undefined) {
-        return prefixes[i];
-    }
-  }
-  return false;
-};
+  , indexOf = require('indexof')
+  , translate = require('translate');
 
 // By default, use these options. Should we bother with this?
 var defaultOptions = {
@@ -260,7 +250,6 @@ Cast.prototype.draw = function(options){
   if (options) this.setOptions(options);
   if (!this.view) {
     this.view = new CastView(this);
-    this.supportsTransform = testTransform();
   }
   this.wrapper.innerHTML = '';
   this.view.render();
@@ -398,15 +387,7 @@ CastItemView.prototype.changePosition = function(){
 
   style.width = width + 'px';
   style.height = height + 'px';
-
-  if (this.context.supportsTransform){
-    style.webkitTransform = style.MozTransform = 'translate3d('+left+'px,'+top+'px, 0)';
-    style.msTransform = style.OTransform = 'translate('+left+'px, '+top+'px)';
-    return this;
-  }
-
-  style.top = top + 'px';
-  style.left = left + 'px';
+  translate(this.el, left, top);
   return this;
 };
 

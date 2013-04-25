@@ -10,7 +10,8 @@
     "component/bind": "*",
     "component/type": "*",
     "bmcmahen/ordered-dictionary": "*",
-    "component/indexof": "*"
+    "component/indexof": "*",
+    "component/translate": "*"
   },
   "development": {},
   "license": "MIT",
