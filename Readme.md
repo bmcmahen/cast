@@ -61,6 +61,10 @@ Calculates the grid with dynamic width on the left and right side of the wrapper
 
 Calculates the grid with a constant `paddingWidth` and `paddingHeight`, and a dynamic `boxWidth` and `boxHeight`. If `.draw()` has been called, `.dynamic()` will automatically rerender your views.
 
+### .list()
+
+Calculates the grid as a list, with one object per line.
+
 ### .toJSON()
 
 After running a layout method, calling `.toJSON()` will return the grid item collection with the `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
