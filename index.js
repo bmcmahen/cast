@@ -53,7 +53,7 @@ Cast.prototype.data = function(attr, fn) {
 
   // Either update our model, or make a new one for each attribute
   // that we have passed.
-  for ( var i = 0; i < attr.length; i++ ){
+  for ( var i = 0, l = attr.length; i < l; i++ ){
     var key = fn(attr[i]);
     var model = this.collection.get(key);
     keys.push(key);
@@ -68,7 +68,7 @@ Cast.prototype.data = function(attr, fn) {
     this.collection.forEach(function(key, model, i){
       if (indexOf(keys, key) === -1 ) toRemove.push(key);
     });
-    for (var x = 0; x < toRemove.length; x++){
+    for (var x = 0, length = toRemove.length; x < length; x++){
       this.collection.remove(toRemove[x]);
     }
   }
@@ -98,7 +98,7 @@ Cast.prototype.reset = function(attr, fn){
 
 Cast.prototype.add = function(attr, fn){
   if (type(attr) !== 'array') attr = [attr];
-  for (var i = 0; i < attr.length; i++){
+  for (var i = 0, l = attr.length; i < l; i++){
     var key = fn ? fn(attr[i]) : this.uniqueId('c');
     var val = new Block(attr[i], this);
     this.collection.set(key, val);
