@@ -3,11 +3,22 @@
 	<title>grid-it example</title>
 
 	<style>
+
+	* {
+		box-sizing: border-box;
+	}
+
+	.cast-view {
+		position: relative;
+	}
+
 	.cast-item {
 		position: absolute;
-		width: 75px;
-		height: 75px;
+		display: block;
+		height: 50px;
 		background: #eee;
+		width: 100%;
+		box-sizing: border-box;
 		opacity: 1;
 
 		-webkit-transition: all 0.5s;
@@ -32,11 +43,11 @@
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
 	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
-	<script src='../dist/app.js'></script>
+	<script src='../build/build.js'></script>
 	<script>
 		var attributes = [{name: 'ben', age: 28}, {name: 'kit', age: 28}, {name: 'rick', age: 32}, {name: 'kat', age: 33}, {name: 'james', age: 35}, {name: 'jay', age: 35}, {name: 'joe', age: 35}, {name: 'bob', age: 35}, {name: 'carver', age: 35}, {name: 'doogie', age: 35}, {name: 'doug', age: 35}];
 
-
+		var cast = require('cast');
 
 		var myGrid = cast({ wrapper: '#wrapper'})
 			.data(attributes, function(attr){
@@ -55,23 +66,24 @@
 				template: _.template($('#grid-item-template').html())
 			});
 
-			myGrid.justify({
-				boxWidth: 150,
-				boxHeight: 150,
-				paddingWidth: 10,
+			myGrid.list({
+				boxHeight: 50,
 				paddingHeight: 10
 			});
 
+			$('#name-filter').on('input', function(e){
+				// hello
+			});
 
 			$('#restore').on('click', function(){
 				myGrid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
 					return attr.name;
-				}).justify();
+				}).list();
 			});
 
 			var $wrapper = $('#wrapper');
 			$(window).on('resize', function(){
-				myGrid.justify({
+				myGrid.list({
 					wrapperWidth: $wrapper.width()
 				});
 			});

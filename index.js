@@ -234,6 +234,24 @@ Cast.prototype.dynamic = function(options){
   return this;
 };
 
+Cast.prototype.list = function(options){
+  if (options) this.setOptions(options);
+  var h = this.boxHeight
+    , ph = this.paddingHeight;
+
+  this.collection.forEach(function(id, model, i){
+    var top = (h + ph) * i;
+    model.set({
+      left: 0,
+      top: top,
+      height: h
+    });
+  });
+
+  this.emit('wrapperHeight', this.collection.length() * (h + ph));
+  return this;
+};
+
 Cast.prototype.sortBy = function(field, invert){
   invert = invert || 1;
   this.collection.sort(function(left, right){
