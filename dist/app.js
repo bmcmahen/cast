@@ -589,6 +589,88 @@ module.exports = function(arr, obj){
   return -1;
 };
 });
+require.register("component-has-translate3d/index.js", function(exports, require, module){
+
+var prop = require('transform-property');
+if (!prop) return module.exports = false;
+
+var map = {
+  webkitTransform: '-webkit-transform',
+  OTransform: '-o-transform',
+  msTransform: '-ms-transform',
+  MozTransform: '-moz-transform',
+  transform: 'transform'
+};
+
+// from: https://gist.github.com/lorenzopolidori/3794226
+var el = document.createElement('div');
+el.style[prop] = 'translate3d(1px,1px,1px)';
+document.body.insertBefore(el, null);
+var val = window.getComputedStyle(el).getPropertyValue(map[prop]);
+document.body.removeChild(el);
+module.exports = null != val && val.length && 'none' != val;
+
+});
+require.register("component-transform-property/index.js", function(exports, require, module){
+
+var styles = [
+  'webkitTransform',
+  'MozTransform',
+  'msTransform',
+  'OTransform',
+  'transform'
+];
+
+var el = document.createElement('p');
+var style;
+
+for (var i = 0; i < styles.length; i++) {
+  style = styles[i];
+  if (null != el.style[style]) {
+    module.exports = style;
+    break;
+  }
+}
+
+});
+require.register("component-translate/index.js", function(exports, require, module){
+
+/**
+ * Module dependencies.
+ */
+
+var transform = require('transform-property');
+var has3d = require('has-translate3d');
+
+/**
+ * Expose `translate`.
+ */
+
+module.exports = translate;
+
+/**
+ * Translate `el` by `(x, y)`.
+ *
+ * @param {Element} el
+ * @param {Number} x
+ * @param {Number} y
+ * @api public
+ */
+
+function translate(el, x, y){
+  if (transform) {
+    if (has3d) {
+      el.style[transform] = 'translate3d(' + x + 'px,' + y + 'px, 0)';
+    } else {
+      el.style[transform] = 'translate(' + x + 'px,' + y + 'px)';
+    }
+  } else {
+    el.style.left = x;
+    el.style.top = y;
+  }
+};
+
+});
 require.register("cast/index.js", function(exports, require, module){
 // Required Modules.
 var Emitter = require('emitter')
@@ -596,18 +678,8 @@ var Emitter = require('emitter')
   , bind = require('bind')
   , type = require('type')
   , OrderedDictionary = require('ordered-dictionary')
-  , indexOf = require('indexof');
-
-// Determine whehter or not we can use 3d/2d transforms
-var testTransform = function(){
-  var prefixes = 'transform WebkitTransform MozTransform OTransform msTransform'.split(' ');
-    for(var i = 0; i < prefixes.length; i++) {
-      if(document.createElement('div').style[prefixes[i]] !== undefined) {
-        return prefixes[i];
-    }
-  }
-  return false;
-};
+  , indexOf = require('indexof')
+  , translate = require('translate');
 
 // By default, use these options. Should we bother with this?
 var defaultOptions = {
@@ -655,7 +727,7 @@ Cast.prototype.data = function(attr, fn) {
 
   // Either update our model, or make a new one for each attribute
   // that we have passed.
-  for ( var i = 0; i < attr.length; i++ ){
+  for ( var i = 0, l = attr.length; i < l; i++ ){
     var key = fn(attr[i]);
     var model = this.collection.get(key);
     keys.push(key);
@@ -670,7 +742,7 @@ Cast.prototype.data = function(attr, fn) {
     this.collection.forEach(function(key, model, i){
       if (indexOf(keys, key) === -1 ) toRemove.push(key);
     });
-    for (var x = 0; x < toRemove.length; x++){
+    for (var x = 0, length = toRemove.length; x < length; x++){
       this.collection.remove(toRemove[x]);
     }
   }
@@ -700,7 +772,7 @@ Cast.prototype.reset = function(attr, fn){
 
 Cast.prototype.add = function(attr, fn){
   if (type(attr) !== 'array') attr = [attr];
-  for (var i = 0; i < attr.length; i++){
+  for (var i = 0, l = attr.length; i < l; i++){
     var key = fn ? fn(attr[i]) : this.uniqueId('c');
     var val = new Block(attr[i], this);
     this.collection.set(key, val);
@@ -836,6 +908,24 @@ Cast.prototype.dynamic = function(options){
   return this;
 };
 
+Cast.prototype.list = function(options){
+  if (options) this.setOptions(options);
+  var h = this.boxHeight
+    , ph = this.paddingHeight;
+
+  this.collection.forEach(function(id, model, i){
+    var top = (h + ph) * i;
+    model.set({
+      left: 0,
+      top: top,
+      height: h
+    });
+  });
+
+  this.emit('wrapperHeight', this.collection.length() * (h + ph));
+  return this;
+};
+
 Cast.prototype.sortBy = function(field, invert){
   invert = invert || 1;
   this.collection.sort(function(left, right){
@@ -852,7 +942,6 @@ Cast.prototype.draw = function(options){
   if (options) this.setOptions(options);
   if (!this.view) {
     this.view = new CastView(this);
-    this.supportsTransform = testTransform();
   }
   this.wrapper.innerHTML = '';
   this.view.render();
@@ -990,15 +1079,7 @@ CastItemView.prototype.changePosition = function(){
 
   style.width = width + 'px';
   style.height = height + 'px';
-
-  if (this.context.supportsTransform){
-    style.webkitTransform = style.MozTransform = 'translate3d('+left+'px,'+top+'px, 0)';
-    style.msTransform = style.OTransform = 'translate('+left+'px, '+top+'px)';
-    return this;
-  }
-
-  style.top = top + 'px';
-  style.left = left + 'px';
+  translate(this.el, left, top);
   return this;
 };
 
@@ -1039,6 +1120,15 @@ require.alias("component-emitter/index.js", "bmcmahen-ordered-dictionary/deps/em
 require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
 require.alias("component-indexof/index.js", "cast/deps/indexof/index.js");
+
+require.alias("component-translate/index.js", "cast/deps/translate/index.js");
+require.alias("component-translate/index.js", "cast/deps/translate/index.js");
+require.alias("component-has-translate3d/index.js", "component-translate/deps/has-translate3d/index.js");
+require.alias("component-transform-property/index.js", "component-has-translate3d/deps/transform-property/index.js");
+
+require.alias("component-transform-property/index.js", "component-translate/deps/transform-property/index.js");
+
+require.alias("component-translate/index.js", "component-translate/index.js");
 
 if (typeof exports == "object") {
   module.exports = require("cast");
