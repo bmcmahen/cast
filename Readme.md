@@ -1,4 +1,3 @@
-
 # Cast.js
 
 Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select your layout mode, and receive grid positions for rendering your own views... or let Cast automatically update and render the views for you. It's vanilla Javascript and it's inspired by [Isotope](https://github.com/desandro/isotope).
@@ -7,21 +6,19 @@ Check out the [demonstration](http://cast.meteor.com) built with Meteor.
 
 ## Installation
 
-Cast can be used as a Component. To use it, you'll need to install Component via npm:
+The easiest way to use Cast is to use the `app.js` located in the `dist` folder, and require this script in your html page. Cast will then be available under the global variable `cast`'. 
 
-	$ npm install -g component
-
-Navigate to your project directory, install Cast, and build the installed components.
+Alternatively, Cast can be used as a [component](https://github.com/component/component).
+Navigate to your project directory where your `component.json` file exists, install Cast, and build the installed components.
 
 	$ component install bmcmahen/cast
 	$ component build
 
 This produces a `build.js` file inside the `build` folder. Attach this script to your HTML file and access the constructor using `require()` within your code.
 
-	var Cast = require('bmcmahen-cast');
+	var Cast = require('cast');
 	var cast = new Cast(options);
 
-Alternatively, use `app.js` located in the `dist` folder. Cast will be available under the global variable `cast`.
 
 ## API
 
