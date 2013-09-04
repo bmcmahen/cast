@@ -140,7 +140,9 @@ The following CSS will provide animations for opacity and positions. You can als
 
 	<script>
 
-		var Cast = require('bmcmahen-cast');
+		var Cast = require('cast');
+		// if you aren't using it as a component, 'cast' will be the global variable
+		
 		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
 
 		var myCast = new Cast({
