@@ -161,7 +161,7 @@ layout.draw();
 Include the standalone `cast.js` file in your client-side folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
 
 ```html
-{{constant}}
+{{#constant}}
 <div id='cast'></div>
 {{/constant}}
 ```
