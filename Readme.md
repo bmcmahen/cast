@@ -158,7 +158,7 @@ layout.draw();
 
 ## Meteor Usage
 
-Include the standalone `cast.js` file in your folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
+Include the standalone `cast.js` file in your client-side folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
 
 ```html
 {{constant}}
