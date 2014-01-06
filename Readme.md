@@ -6,18 +6,11 @@ Check out the [demonstration](http://cast.meteor.com) built with Meteor.
 
 ## Installation
 
-The easiest way to use Cast is to use the `app.js` located in the `dist` folder, and require this script in your html page. Cast will then be available under the global variable `cast`'. 
+The easiest way to use Cast is to use the `cast.js` located in the `dist` folder, and require this script in your html page. Cast will then be available under the global variable `cast`'. 
 
 Alternatively, Cast can be used as a [component](https://github.com/component/component).
-Navigate to your project directory where your `component.json` file exists, install Cast, and build the installed components.
 
 	$ component install bmcmahen/cast
-	$ component build
-
-This produces a `build.js` file inside the `build` folder. Attach this script to your HTML file and access the constructor using `require()` within your code.
-
-	var Cast = require('cast');
-	var cast = new Cast(options);
 
 
 ## API
@@ -131,45 +124,83 @@ The following CSS will provide animations for opacity and positions. You can als
 
 ## Example
 
-	// Create a template in our <body>
-	// You can use any templating language that you want. Here, I'll use underscore.
+This example assumes you are using `cast.js` located in the `dist` folder.
 
-	<script type='text/template' id='grid-item-template'>
-		<p> name: <%= name %> </p>
-	</script>
+```javascript
+// Render function. This could also be a template engine
+// like Handlebars, Underscore, etc.
+function render(obj){
+	return '<div>' + obj.name + '</div>';
+}
 
-	<script>
+var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
 
-		var Cast = require('cast');
-		// if you aren't using it as a component, 'cast' will be the global variable
-		
-		var attributes = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
+var layout = cast({ wrapper: '#wrapper', template: render })
+	.data(docs, function(attr){ return attr.name; })
+	.sortBy('name')
+	.justify({
+		boxHeight: 50,
+		boxWidth: 50,
+		paddingHeight: 10,
+		paddingWidth: 10
+	});
 
-		var myCast = new Cast({
-			wrapper: '#wrapper',
-			template: _.template($('#grid-item-template').html())
-		})
-		.data(attributes, function(attr){
-			return attr.name;
-		})
-		.justify({
-			boxHeight: 50,
-			boxWidth: 50,
-			paddingHeight: 10,
-			paddingWidth: 10
-		})
-		.sortBy('name');
 
-		myCast.on('viewRendered', function(view){
-			$(view.el).addClass('custom-class');
-			$(view.el).find('p').on('click', function(e){
-				alert('hello'+ view.model.get('name'));
+layout.on('viewRendered', function(view){
+	$(view.el).addClass('custom-class');
+	$(view.el).find('p').on('click', function(e){
+		alert('hello'+ view.model.get('name'));
+	});
+});
+
+layout.draw();
+```
+
+## Meteor Usage
+
+Include the standalone `cast.js` file in your folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
+
+```html
+{{constant}}
+<div id='cast'></div>
+{{/constant}}
+```
+
+In your code, you'll want to create a simple template function that will be used to render each cast item. Here's a simple example:
+
+```javascript
+function renderTemplate(obj){
+	return '<p>' + obj.title + '</p>';
+}
+```
+
+Inside your templat rendered callback, instantiate a new `cast` and attach the data to the cast, specifying the layout that you want. Putting your `data` attachment function inside of an autorun will automatically update your cast layout any time the collection changes.
+
+```javascript
+Template.cast.rendered = function(){
+
+	var mycast = cast({
+		wrapper: '#cast',
+		template: renderTemplate
+	});
+
+	mycast.draw();
+
+	this.handle = Meteor.autorun(function(){
+		var videos = Videos.find().fetch();
+		mycast
+			.data(videos, function(attr){
+				return attr._id;
+			})
+			.dynamic({
+				boxWidth: 150,
+				boxHeight: 150,
+				paddingWidth: 10,
+				paddingHeight: 10
 			});
-		});
-
-		myCast.draw();
-	</script>
-
+	});
+}
+```
 ## License
 
   MIT
