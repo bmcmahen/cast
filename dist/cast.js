@@ -203,12 +203,6 @@ require.relative = function(parent) {
 require.register("component-emitter/index.js", function(exports, require, module){
 
 /**
- * Module dependencies.
- */
-
-var index = require('indexof');
-
-/**
  * Expose `Emitter`.
  */
 
@@ -248,7 +242,8 @@ function mixin(obj) {
  * @api public
  */
 
-Emitter.prototype.on = function(event, fn){
+Emitter.prototype.on =
+Emitter.prototype.addEventListener = function(event, fn){
   this._callbacks = this._callbacks || {};
   (this._callbacks[event] = this._callbacks[event] || [])
     .push(fn);
@@ -274,7 +269,7 @@ Emitter.prototype.once = function(event, fn){
     fn.apply(this, arguments);
   }
 
-  fn._off = on;
+  on.fn = fn;
   this.on(event, on);
   return this;
 };
@@ -291,7 +286,8 @@ Emitter.prototype.once = function(event, fn){
 
 Emitter.prototype.off =
 Emitter.prototype.removeListener =
-Emitter.prototype.removeAllListeners = function(event, fn){
+Emitter.prototype.removeAllListeners =
+Emitter.prototype.removeEventListener = function(event, fn){
   this._callbacks = this._callbacks || {};
 
   // all
@@ -311,8 +307,14 @@ Emitter.prototype.removeAllListeners = function(event, fn){
   }
 
   // remove specific handler
-  var i = index(callbacks, fn._off || fn);
-  if (~i) callbacks.splice(i, 1);
+  var cb;
+  for (var i = 0; i < callbacks.length; i++) {
+    cb = callbacks[i];
+    if (cb === fn || cb.fn === fn) {
+      callbacks.splice(i, 1);
+      break;
+    }
+  }
   return this;
 };
 
@@ -428,7 +430,6 @@ function clone(obj){
 
 });
 require.register("component-bind/index.js", function(exports, require, module){
-
 /**
  * Slice reference.
  */
@@ -447,7 +448,7 @@ var slice = [].slice;
 module.exports = function(obj, fn){
   if ('string' == typeof fn) fn = obj[fn];
   if ('function' != typeof fn) throw new Error('bind() requires a function');
-  var args = [].slice.call(arguments, 2);
+  var args = slice.call(arguments, 2);
   return function(){
     return fn.apply(obj, args.concat(slice.call(arguments)));
   }
@@ -482,6 +483,7 @@ module.exports = function(val){
 
   if (val === null) return 'null';
   if (val === undefined) return 'undefined';
+  if (val && val.nodeType === 1) return 'element';
   if (val === Object(val)) return 'object';
 
   return typeof val;
@@ -571,11 +573,8 @@ OrderedDictonary.prototype.clear = function(){
 };
 });
 require.register("component-indexof/index.js", function(exports, require, module){
-
-var indexOf = [].indexOf;
-
 module.exports = function(arr, obj){
-  if (indexOf) return arr.indexOf(obj);
+  if (arr.indexOf) return arr.indexOf(obj);
   for (var i = 0; i < arr.length; ++i) {
     if (arr[i] === obj) return i;
   }
@@ -585,7 +584,8 @@ module.exports = function(arr, obj){
 require.register("component-has-translate3d/index.js", function(exports, require, module){
 
 var prop = require('transform-property');
-if (!prop) return module.exports = false;
+// IE8<= doesn't have `getComputedStyle`
+if (!prop || !window.getComputedStyle) return module.exports = false;
 
 var map = {
   webkitTransform: '-webkit-transform',
@@ -599,7 +599,7 @@ var map = {
 var el = document.createElement('div');
 el.style[prop] = 'translate3d(1px,1px,1px)';
 document.body.insertBefore(el, null);
-var val = window.getComputedStyle(el).getPropertyValue(map[prop]);
+var val = getComputedStyle(el).getPropertyValue(map[prop]);
 document.body.removeChild(el);
 module.exports = null != val && val.length && 'none' != val;
 
@@ -658,8 +658,8 @@ function translate(el, x, y){
       el.style[transform] = 'translate(' + x + 'px,' + y + 'px)';
     }
   } else {
-    el.style.left = x;
-    el.style.top = y;
+    el.style.left = x + 'px';
+    el.style.top = y + 'px';
   }
 };
 
@@ -731,10 +731,13 @@ Cast.prototype.data = function(attr, fn) {
   // If running .data() multiple times, remove any attributes
   // that were not contained in subsequent calls. XXX Improve.
   if (len) {
+    var toRemove = [];
     this.collection.forEach(function(key, model, i){
-      if (indexOf(keys, key) === -1 )
-        this.remove(key);
+      if (indexOf(keys, key) === -1 ) toRemove.push(key);
     });
+    for (var x = 0, length = toRemove.length; x < length; x++){
+      this.collection.remove(toRemove[x]);
+    }
   }
   return this;
 };
@@ -1111,7 +1114,6 @@ module.exports = Cast;
 
 require.alias("component-emitter/index.js", "cast/deps/emitter/index.js");
 require.alias("component-emitter/index.js", "emitter/index.js");
-require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
 require.alias("component-clone/index.js", "cast/deps/clone/index.js");
 require.alias("component-clone/index.js", "clone/index.js");
@@ -1128,7 +1130,6 @@ require.alias("bmcmahen-ordered-dictionary/index.js", "ordered-dictionary/index.
 require.alias("component-indexof/index.js", "bmcmahen-ordered-dictionary/deps/indexof/index.js");
 
 require.alias("component-emitter/index.js", "bmcmahen-ordered-dictionary/deps/emitter/index.js");
-require.alias("component-indexof/index.js", "component-emitter/deps/indexof/index.js");
 
 require.alias("component-indexof/index.js", "cast/deps/indexof/index.js");
 require.alias("component-indexof/index.js", "indexof/index.js");

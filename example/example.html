@@ -43,33 +43,26 @@
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
 	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
-	<script src='../build/build.js'></script>
+	<script src='../dist/cast.js'></script>
 	<script>
 		var attributes = [{name: 'ben', age: 28}, {name: 'kit', age: 28}, {name: 'rick', age: 32}, {name: 'kat', age: 33}, {name: 'james', age: 35}, {name: 'jay', age: 35}, {name: 'joe', age: 35}, {name: 'bob', age: 35}, {name: 'carver', age: 35}, {name: 'doogie', age: 35}, {name: 'doug', age: 35}];
 
-		var cast = require('cast');
-
-		var myGrid = cast({ wrapper: '#wrapper'})
+		var myGrid = cast({ 
+				wrapper: '#wrapper',
+				template: _.template($('#grid-item-template').html())
+			})
 			.data(attributes, function(attr){
 				return attr.name
-			});
-
-			myGrid.on('wrapperHeight', function(height){
-				console.log(height);
-			});
-
-			myGrid.on('viewRendered', function(view){
-				console.log($(view.el).find('p').addClass('bacon'));
-			});
-
-			myGrid.draw({
-				template: _.template($('#grid-item-template').html())
-			});
-
-			myGrid.list({
+			})
+			.justify({
 				boxHeight: 50,
-				paddingHeight: 10
-			});
+				boxWidth: 50,
+				paddingHeight: 10,
+				paddingWidth: 10
+			})
+			.sortBy('name');
+
+			myGrid.draw();
 
 			$('#name-filter').on('input', function(e){
 				// hello
@@ -78,15 +71,10 @@
 			$('#restore').on('click', function(){
 				myGrid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
 					return attr.name;
-				}).list();
+				}).justify();
 			});
 
-			var $wrapper = $('#wrapper');
-			$(window).on('resize', function(){
-				myGrid.list({
-					wrapperWidth: $wrapper.width()
-				});
-			});
+		
 	</script>
 
 
