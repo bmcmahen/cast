@@ -64,13 +64,10 @@ Cast.prototype.data = function(attr, fn) {
   // If running .data() multiple times, remove any attributes
   // that were not contained in subsequent calls. XXX Improve.
   if (len) {
-    var toRemove = [];
     this.collection.forEach(function(key, model, i){
-      if (indexOf(keys, key) === -1 ) toRemove.push(key);
+      if (indexOf(keys, key) === -1 )
+        this.remove(key);
     });
-    for (var x = 0, length = toRemove.length; x < length; x++){
-      this.collection.remove(toRemove[x]);
-    }
   }
   return this;
 };
