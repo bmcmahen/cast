@@ -5,7 +5,6 @@ var bind = require('bind');
 var type = require('type');
 var OrderedDictionary = require('ordered-dictionary');
 var indexOf = require('indexof');
-var translate = require('translate');
 
 
 /**
@@ -386,6 +385,7 @@ Block.prototype.toJSON = function(){
 // Our wrapper view, which renders an array of Cast item views.
 // Constructor
 var CastView = function(context){
+  this.translate = require('translate');
   this.context = context;
   this.collection = context.collection;
   this.el = document.createElement('div');
@@ -456,22 +456,22 @@ CastItemView.prototype.remove = function(){
 
 // Should we also use scale3d (like isotope?)
 CastItemView.prototype.changePosition = function(){
-  var top = this.model.get('top')
-    , left = this.model.get('left')
-    , style = this.el.style
-    , width = this.model.get('width')
-    , height = this.model.get('height');
+  var top = this.model.get('top');
+  var left = this.model.get('left');
+  var style = this.el.style;
+  var width = this.model.get('width');
+  var height = this.model.get('height');
 
   style.width = width + 'px';
   style.height = height + 'px';
-  translate(this.el, left, top);
+  this.translate(this.el, left, top);
   return this;
 };
 
 CastItemView.prototype.showOrHide = function(){
-  var _this = this
-    , el = this.el
-    , style = el.style;
+  var _this = this;
+  var el = this.el;
+  var style = el.style;
 
   if (this.model.get('hidden')) {
     el.className += ' hidden';
