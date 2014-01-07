@@ -89,10 +89,10 @@ Renders (or rerenders) the collection using the supplied template function. The 
 	 cast.on('enter', function(model){ });
 
 ### exit(model)
-### viewCreated(view)
-### viewRendered(view)
-### viewDestroyed(view)
-### wrapperHeight(height)
+### view-created(view)
+### view-rendered(view)
+### view-destroyed(view)
+### wrapper-height(height)
 
 ## CSS for animations
 
@@ -132,7 +132,7 @@ var grid = cast(container)
 	.sortBy('name')
 	.justify(50, 50, 10, 10);
 
-grid.on('view rendered', function(view){
+grid.on('view-rendered', function(view){
 	$(view.el)
 		.addClass('custom-class')
 		.find('p')

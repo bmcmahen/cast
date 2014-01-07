@@ -188,7 +188,7 @@ Cast.prototype.justify = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
-  this.emit('wrapperHeight', wrapperHeight);
+  this.emit('wrapper-height', wrapperHeight);
   return this;
 };
 
@@ -225,7 +225,7 @@ Cast.prototype.center = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
-  this.emit('wrapperHeight', wrapperHeight);
+  this.emit('wrapper-height', wrapperHeight);
   return this;
 };
 
@@ -266,7 +266,7 @@ Cast.prototype.dynamic = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (newHeight + ph)  + ph;
-  this.emit('wrapperHeight', wrapperHeight);
+  this.emit('wrapper-height', wrapperHeight);
   return this;
 };
 
@@ -290,7 +290,7 @@ Cast.prototype.list = function(h, ph){
     });
   });
 
-  this.emit('wrapperHeight', this.collection.length() * (h + ph));
+  this.emit('wrapper-height', this.collection.length() * (h + ph));
   return this;
 };
 
@@ -392,7 +392,7 @@ var CastView = function(context){
   this.el.className = 'cast-view';
   this.collection.on('enter', bind(this, this.renderNew));
   this.collection.on('exit', bind(this, this.removeOld));
-  this.context.on('wrapperHeight', bind(this, this.setHeight));
+  this.context.on('wrapper-height', bind(this, this.setHeight));
 };
 
 // Methods
@@ -435,14 +435,14 @@ var CastItemView = function(options){
   this.model
     .on('change:attribute', bind(this, this.render))
     .on('destroy', bind(this, this.remove));
-  this.context.emit('viewCreated', this);
+  this.context.emit('view-created', this);
 };
 
 // Methods
 CastItemView.prototype.render = function(){
   this.el.innerHTML = this.template(this.model.toJSON());
   this.changePosition().showOrHide();
-  this.context.emit('viewRendered', this);
+  this.context.emit('view-rendered', this);
   return this;
 };
 
@@ -450,7 +450,7 @@ CastItemView.prototype.remove = function(){
   this.model
     .off('change:attribute')
     .off('destroy');
-  this.context.emit('viewDestroyed', this);
+  this.context.emit('view-destroyed', this);
   this.el.parentNode.removeChild(this.el);
 };
 
