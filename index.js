@@ -14,10 +14,18 @@ var translate = require('translate');
 
 var Cast = function(container){
   if (!(this instanceof Cast)) return new Cast(container);
-  this.wrapper = (typeof container == 'String')
-    ? document.querySelector(container)
-    : container;
-  this.wrapperWidth = this.wrapper.clientWidth;
+
+  var containerType = type(container);
+
+  if (containerType === 'string') {
+    this.wrapper = document.querySelector(container);
+  } else if (containerType === 'element') {
+    this.wrapper = container;
+  } else {
+    this.wrapperWidth = container;
+  }
+
+  if (!this.wrapperWidth) this.wrapperWidth = this.wrapper.clientWidth;
   this.collection = new OrderedDictionary();
   this.idCounter = 0;
 };

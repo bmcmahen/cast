@@ -681,10 +681,18 @@ var translate = require('translate');
 
 var Cast = function(container){
   if (!(this instanceof Cast)) return new Cast(container);
-  this.wrapper = (typeof container == 'String')
-    ? document.querySelector(container)
-    : container;
-  this.wrapperWidth = this.wrapper.clientWidth;
+
+  var containerType = type(container);
+
+  if (containerType === 'string') {
+    this.wrapper = document.querySelector(container);
+  } else if (containerType === 'element') {
+    this.wrapper = container;
+  } else {
+    this.wrapperWidth = container;
+  }
+
+  if (!this.wrapperWidth) this.wrapperWidth = this.wrapper.clientWidth;
   this.collection = new OrderedDictionary();
   this.idCounter = 0;
 };
@@ -715,7 +723,6 @@ Cast.prototype.data = function(docs, fn) {
   // that we have passed.
   for ( var i = 0, l = docs.length; i < l; i++ ){
     var key = isFn ? fn(docs[i]) : docs[i][fn];
-    console.log(key);
     var model = this.collection.get(key);
     keys.push(key);
     if (model) model.set(docs[i]);

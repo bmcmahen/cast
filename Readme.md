@@ -15,43 +15,33 @@ Alternatively, Cast can be used as a [component](https://github.com/component/co
 
 ## API
 
-### new Cast(options)
+### new Cast(container)
 
-Available options include:
+`container` can either be an Element, Selector String, or a Number. A number should be used when you don't plan to actually use the built in views, in which case you still need to specify the wrapper width.
 
-	var options = {
-		boxWidth: Number,
-		boxHeight: Number,
-		paddingWidth: Number,
-		paddingHeight: Number,
-		template: Underscore, Handlebars, etc., template function,
-		wrapper: '#selector',
-		wrapperWidth: Number
-	};
+### .data(docs, Fn|String)
 
-If you are working without views, you'll need to specify the `wrapperWidth` option. If you supply a `wrapper` element, `wrapperWidth` isn't necessary.
+Supply Cast with an array of documents. Use the callback function to supply a unique identifer for each field, which will allow Cast to update, remove, and add attributes on subsequent calls. Alternatively, supply the key of the unique identifer ('_id', 'id', etc.).
 
-### .data(attr, fn)
-
-Supply Cast with an array of attributes. Use the callback function to supply a unique identifer for each field, which will allow Cast to update, remove, and add attributes on subsequent calls.
-
-	cast.data(attributes, function(attr){
+	cast.data(docs, function(attr){
 		return attr._id;
 	});
 
-### .justify()
+	cast.data(docs, '_id');
 
-Calculates the grid positions assuming that the wrapper has 0 padding on the left and right. Grid item width and height are constant. paddingWidth is dynamic. If `.draw()` has been called, `.justify()` will automatically rerender your views.
+### .justify(width, height, paddingWidth, paddingHeight)
 
-### .center()
+Calculates grid positions to maintain a container left & right padding of zero. Grid item width and height remain constant, while grid-item-padding is dyanimc. If `#draw` has been called, `#justify` will automatically rerender your views.
 
-Calculates the grid with dynamic width on the left and right side of the wrapper. Grid item width, height, paddingWidth, and paddingHeight are constant. If `.draw()` has been called, `.center()` will automatically rerender your views.
+### .center(width, height, paddingWidth, paddingHeight)
 
-### .dynamic()
+Calculates the grid with dynamic width on the left and right side of the wrapper. Grid item width, height, paddingWidth, and paddingHeight are constant. If `#draw` has been called, `#center` will automatically rerender your views.
 
-Calculates the grid with a constant `paddingWidth` and `paddingHeight`, and a dynamic `boxWidth` and `boxHeight`. If `.draw()` has been called, `.dynamic()` will automatically rerender your views.
+### .dynamic(width, height, paddingWidth, paddingHeight)
 
-### .list()
+Calculates the grid with a constant `paddingWidth` and `paddingHeight`, and a dynamic `boxWidth` and `boxHeight`. If `#draw` has been called, `#dynamic` will automatically rerender your views.
+
+### .list(height, paddingHeight)
 
 Calculates the grid as a list, with one object per line.
 
@@ -59,38 +49,38 @@ Calculates the grid as a list, with one object per line.
 
 After running a layout method, calling `.toJSON()` will return the grid item collection with the `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
 
-	var json = cast.data(attr).justify().toJSON();
+	var json = cast.data(docs).justify(40, 40, 10, 10).toJSON();
 
-### .reset(attributes, fn)
+### .reset(docs, fn|String)
 
 Resets the Cast object with the supplied array. Use the callback to provide a unique, constant value for the field.
 
-	cast.reset(attributes, function(attr){
+	cast.reset(docs, function(attr){
 		return attr._id;
 	});
 
-### .add(attributes, fn)
+	cast.reset(docs, 'id');
 
-Appends attributes to the Cast object.
+### .add(docs, fn|String)
 
-### .remove(key)
+Appends docs to the Cast object.
 
-	cast.remove('a_document_id');
+### .remove(uid)
+
+	cast.remove('34');
 
 ### .sortBy(field, 1)
 
 Sorts the collection based on a `field`.
 
-	cast.sortBy('name', -1).center();
+	cast.sortBy('name', -1).center(50, 50, 10, 10);
 
-### .draw()
+### .draw(template)
 
-	cast.data(attr).center().draw({
-		wrapper: '#my-cast',
-		template: _.template($('#template').html())
-	});
+	var template = _.template($('#template').html());
+	cast.data(docs, 'id').center(50, 50, 10, 10).draw(template);
 
-Renders (or rerenders) the collection into the specified wrapper element.
+Renders (or rerenders) the collection using the supplied template function. The template function should return an HTML String.
 
 ## Events
 
@@ -134,26 +124,24 @@ function render(obj){
 }
 
 var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
+var container = document.getElementById('#wrapper');
 
-var layout = cast({ wrapper: '#wrapper', template: render })
-	.data(docs, function(attr){ return attr.name; })
+// Create our cast
+var grid = cast(container)
+	.data(docs, 'name')
 	.sortBy('name')
-	.justify({
-		boxHeight: 50,
-		boxWidth: 50,
-		paddingHeight: 10,
-		paddingWidth: 10
-	});
+	.justify(50, 50, 10, 10);
 
-
-layout.on('viewRendered', function(view){
-	$(view.el).addClass('custom-class');
-	$(view.el).find('p').on('click', function(e){
-		alert('hello'+ view.model.get('name'));
-	});
+grid.on('view rendered', function(view){
+	$(view.el)
+		.addClass('custom-class')
+		.find('p')
+		.on('click', function(e){
+			alert('hello' + view.model.get('name'));
+		});
 });
 
-layout.draw();
+grid.draw(render);
 ```
 
 ## Meteor Usage
@@ -179,25 +167,17 @@ Inside your templat rendered callback, instantiate a new `cast` and attach the d
 ```javascript
 Template.cast.rendered = function(){
 
-	var mycast = cast({
-		wrapper: '#cast',
-		template: renderTemplate
-	});
+	var el = document.getElementById('#cast');
+
+	var mycast = cast(el);
 
 	mycast.draw();
 
 	this.handle = Meteor.autorun(function(){
 		var videos = Videos.find().fetch();
 		mycast
-			.data(videos, function(attr){
-				return attr._id;
-			})
-			.dynamic({
-				boxWidth: 150,
-				boxHeight: 150,
-				paddingWidth: 10,
-				paddingHeight: 10
-			});
+			.data(videos, '_id')
+			.dynamic(150, 150, 10, 10);
 	});
 }
 ```
