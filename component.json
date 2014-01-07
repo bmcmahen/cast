@@ -13,7 +13,10 @@
     "component/indexof": "*",
     "component/translate": "*"
   },
-  "development": {},
+  "development": {
+    "component/assert": "*",
+    "component/jquery": "*"
+  },
   "license": "MIT",
   "scripts": [
     "index.js"

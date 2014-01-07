@@ -45,7 +45,7 @@ Emitter(Cast.prototype);
 Cast.prototype.data = function(docs, fn) {
   if (!fn) {
     this.reset(docs);
-    return;
+    return this;
   }
 
   var len = this.collection.length();
