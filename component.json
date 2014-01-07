@@ -3,7 +3,7 @@
   "repo": "bmcmahen/cast",
   "description": "For creating animated grid layouts given an array of attributes.",
   "version": "0.5.0",
-  "keywords": [],
+  "keywords": ["layout", "grid", "isotope"],
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
