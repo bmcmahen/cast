@@ -1,68 +1,61 @@
 // Required Modules.
-var Emitter = require('emitter')
-  , clone = require('clone')
-  , bind = require('bind')
-  , type = require('type')
-  , OrderedDictionary = require('ordered-dictionary')
-  , indexOf = require('indexof')
-  , translate = require('translate');
+var Emitter = require('emitter');
+var clone = require('clone');
+var bind = require('bind');
+var type = require('type');
+var OrderedDictionary = require('ordered-dictionary');
+var indexOf = require('indexof');
+var translate = require('translate');
 
-// By default, use these options. Should we bother with this?
-var defaultOptions = {
-  boxWidth: 75,
-  paddingWidth: 5,
-  boxHeight: 75,
-  paddingHeight: 5,
-  minWidth: 30,
-  maxWidth: 80,
-  ratio: 1
-};
 
-// Cast Constructor. Contains an ordered-dictionary of Cast-Item models.
-var Cast = function(options){
-  if (!(this instanceof Cast)) return new Cast(options);
+/**
+ * Cast Constructor
+ */
 
-  // Attributes
+var Cast = function(container){
+  if (!(this instanceof Cast)) return new Cast(container);
+  this.wrapper = (typeof container == 'String')
+    ? document.querySelector(container)
+    : container;
+  this.wrapperWidth = this.wrapper.clientWidth;
   this.collection = new OrderedDictionary();
   this.idCounter = 0;
-
-  // Options
-  options = options || {};
-  for (var def in defaultOptions) {
-    if (defaultOptions.hasOwnProperty(def) && options[def] == null) {
-      options[def] = defaultOptions[def];
-    }
-  }
-  this.setOptions(options);
 };
 
 Emitter(Cast.prototype);
 
-// #data() allows us to give our Cast a collection of attributes. If a unique
-// identifier is supplied in the callback (like _.id), then we can efficiently
-// update, add, and remove models on subsequent .data() calls. If we don't
-// have a unique identifier, then we just reset our collection.
-Cast.prototype.data = function(attr, fn) {
+/**
+ * Supply our Cast with a collection of documents. If a unique identifier is
+ * supplied, then we can efficiently update, add, and remove models on subsequent
+ * .data() calls. If we don't have a uid, then reset collection.
+ * 
+ * @param  {Object}   attr 
+ * @param  {Function|String} fn   unique id
+ * @return {Cast}        
+ */
+
+Cast.prototype.data = function(docs, fn) {
   if (!fn) {
-    this.reset(attr);
+    this.reset(docs);
     return;
   }
 
-  var len = this.collection.length(),
-      keys = [];
+  var len = this.collection.length();
+  var keys = [];
+  var isFn = (type(fn) === 'function');
 
-  // Either update our model, or make a new one for each attribute
+  // Either update our model, or make a new one for each docsibute
   // that we have passed.
-  for ( var i = 0, l = attr.length; i < l; i++ ){
-    var key = fn(attr[i]);
+  for ( var i = 0, l = docs.length; i < l; i++ ){
+    var key = isFn ? fn(docs[i]) : docs[i][fn];
     var model = this.collection.get(key);
     keys.push(key);
-    if (model) model.set(attr[i]);
-    else this.collection.set(key, new Block(attr[i], this));
+    if (model) model.set(docs[i]);
+    else this.collection.set(key, new Block(docs[i], this));
   }
 
   // If running .data() multiple times, remove any attributes
-  // that were not contained in subsequent calls. XXX Improve.
+  // that were not contained in subsequent calls. This is fugly. Yoiks.
   if (len) {
     var toRemove = [];
     this.collection.forEach(function(key, model, i){
@@ -75,7 +68,12 @@ Cast.prototype.data = function(attr, fn) {
   return this;
 };
 
-// Methods
+/**
+ * return the JSON of our Cast.
+ * 
+ * @return {Array} 
+ */
+
 Cast.prototype.toJSON = function(){
   var json = [];
   this.collection.forEach(function(key, value){
@@ -84,71 +82,93 @@ Cast.prototype.toJSON = function(){
   return json;
 };
 
-// Courtesy of underscore.js
+/**
+ * Provide a uid
+ * todo: replace with component
+ * 
+ * @param  {String} prefix optional
+ * @return {String}        
+ */
+
 Cast.prototype.uniqueId = function(prefix){
   var id = ++this.idCounter + '';
   return prefix ? prefix + id : id;
 };
 
-Cast.prototype.reset = function(attr, fn){
+/**
+ * Reset Cast with given docs.
+ * 
+ * @param  {Array|Object}   attr 
+ * @param  {Function|String} fn   
+ * @return {Cast}        
+ */
+
+Cast.prototype.reset = function(docs, fn){
   this.collection.clear();
-  this.add(attr, fn);
+  this.add(docs, fn);
   return this;
 };
 
-Cast.prototype.add = function(attr, fn){
-  if (type(attr) !== 'array') attr = [attr];
-  for (var i = 0, l = attr.length; i < l; i++){
-    var key = fn ? fn(attr[i]) : this.uniqueId('c');
-    var val = new Block(attr[i], this);
+/**
+ * Add item with optional uid.
+ * 
+ * @param {Object|Array}   attr 
+ * @param {Function|String} fn   
+ */
+
+Cast.prototype.add = function(docs, fn){
+  if (type(docs) !== 'array') docs = [docs];
+  var isFn = fn && (type(fn) === 'function');
+  for (var i = 0, l = docs.length; i < l; i++){
+    var key = fn ? (isFn ? fn(docs[i]) : docs[i][fn]) : this.uniqueId('c');
+    var val = new Block(docs[i], this);
     this.collection.set(key, val);
   }
   return this;
 };
 
-Cast.prototype.remove = function(key){
-  this.collection.remove(key);
-};
+/**
+ * Remove item given a unique id.
+ * 
+ * @param  {String} key 
+ * @return {Cast}     
+ */
 
-Cast.prototype.setOptions = function(options){
-  for (var option in options) {
-    if (options.hasOwnProperty(option)) {
-      if (option === 'wrapper') {
-        this.wrapper = document.querySelector(options.wrapper);
-        this.wrapperWidth = this.wrapper.clientWidth;
-      } else {
-        this[option] = options[option];
-      }
-    }
-  }
+Cast.prototype.remove = function(uid){
+  this.collection.remove(uid);
   return this;
 };
 
-// The Cast items on the left/right will be fully aligned
-// to the left/right side of the wrapper.
-Cast.prototype.justify = function(options){
-  if (options) this.setOptions(options);
 
-  var cw = this.wrapperWidth,
-      w = this.boxWidth,
-      pw = this.paddingWidth,
-      ph = this.paddingHeight,
-      h = this.boxHeight;
+
+/**
+ * Remove any left/right padding from the container.
+ * 
+ * @param  {Number} w  width
+ * @param  {Number} h  height
+ * @param  {Number} pw padding-width
+ * @param  {Number} ph padding-height
+ * @return {Cast}    
+ */
+
+Cast.prototype.justify = function(w, h, pw, ph){
+  var cw = this.wrapperWidth;
 
   var bpr = Math.floor((cw - (pw * 2)) / (w + pw));
+
   var getLeft = function(c, r) {
     if (c === 0) return 0;
     if (c === bpr - 1) return cw - w;
-    var remainingSpace = cw - (w * bpr),
-        padding = remainingSpace / (bpr - 1);
+    var remainingSpace = cw - (w * bpr);
+    var padding = remainingSpace / (bpr - 1);
     return w + (c * padding) + ((c - 1) * w);
   };
 
   this.collection.forEach(function(key, model, i){
-    var r = Math.floor(i / bpr),
-        c = i % bpr,
-        left = getLeft(c, r),
-        top = ((r * h) + (r + 1) * ph);
+    var r = Math.floor(i / bpr);
+    var c = i % bpr;
+    var left = getLeft(c, r);
+    var top = ((r * h) + (r + 1) * ph);
 
     model.set({
       'left': left,
@@ -157,31 +177,35 @@ Cast.prototype.justify = function(options){
       'height': h
     });
   });
+
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
   this.emit('wrapperHeight', wrapperHeight);
   return this;
 };
 
-// Ensure that there is padding on the far left and right
-// of the wrapper.
-Cast.prototype.center = function(options){
-  if (options) this.setOptions(options);
 
-  var cw = this.wrapperWidth
-    , w = this.boxWidth
-    , h = this.boxHeight
-    , pw = this.paddingWidth
-    , ph = this.paddingHeight;
+/**
+ * The left and right container padding is the 
+ * dynamic property here.
+ * 
+ * @param  {Number} w  width
+ * @param  {Number} h  height
+ * @param  {Number} pw padding-width
+ * @param  {Number} ph padding-height
+ * @return {Cast}    
+ */
 
+Cast.prototype.center = function(w, h, pw, ph){
+  var cw = this.wrapperWidth;
   var bpr = Math.floor(cw/(w + pw));
   var mx = (cw - (bpr * w) - (bpr - 1) * pw) * 0.5;
 
   this.collection.forEach(function(key, model, i){
-    var r = Math.floor(i / bpr)
-      , c = i % bpr
-      , left = mx + (c * (w + pw))
-      , top = (r * h) + (r + 1) * ph;
+    var r = Math.floor(i / bpr);
+    var c = i % bpr;
+    var left = mx + (c * (w + pw));
+    var top = (r * h) + (r + 1) * ph;
 
     model.set({
       'left': left,
@@ -190,23 +214,27 @@ Cast.prototype.center = function(options){
       'height': h
     });
   });
+
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
   this.emit('wrapperHeight', wrapperHeight);
   return this;
 };
 
-// Keeps a constant paddingWidth and Height with a
-// dynamic CastWidth and CastHeight.
-Cast.prototype.dynamic = function(options){
-  if (options) this.setOptions(options);
 
-  var cw = this.wrapperWidth
-    , w = this.boxWidth
-    , h = this.boxHeight
-    , pw = this.paddingWidth
-    , ph = this.paddingHeight;
+/**
+ * Keep a constant padding-width & padding-height with
+ * a dynamic cast-item width and height.
+ * 
+ * @param  {Number} w  width
+ * @param  {Number} h  height
+ * @param  {Number} pw padding-width
+ * @param  {Number} ph padding-height
+ * @return {Cast}    
+ */
 
+Cast.prototype.dynamic = function(w, h, pw, ph){
+  var cw = this.wrapperWidth;
   var bpr = Math.floor(cw / ( w + pw ));
   var newWidth = (cw - (bpr * pw)) / bpr;
   var newHeight = ( newWidth / w ) * h;
@@ -215,16 +243,16 @@ Cast.prototype.dynamic = function(options){
   // XXX This logic is the same as center(). Should we make
   // this a shared function?
   this.collection.forEach(function(id, model, i){
-    var r = Math.floor(i / bpr)
-      , c = i % bpr
-      , left = mx + (c * (newWidth + pw))
-      , top = (r * newHeight) + (r + 1) * ph;
+    var r = Math.floor(i / bpr);
+    var c = i % bpr;
+    var left = mx + (c * (newWidth + pw));
+    var top = (r * newHeight) + (r + 1) * ph;
 
     model.set({
-      width: newWidth,
-      left: left,
-      top: top,
-      height: newHeight
+      'width': newWidth,
+      'left': left,
+      'top': top,
+      'height': newHeight
     });
   });
 
@@ -234,17 +262,23 @@ Cast.prototype.dynamic = function(options){
   return this;
 };
 
-Cast.prototype.list = function(options){
-  if (options) this.setOptions(options);
-  var h = this.boxHeight
-    , ph = this.paddingHeight;
+/**
+ * List layout
+ * 
+ * @param  {Number} h  height
+ * @param  {Number} ph padding-height
+ * @return {Cast}    
+ */
+
+Cast.prototype.list = function(h, ph){
 
   this.collection.forEach(function(id, model, i){
     var top = (h + ph) * i;
+
     model.set({
-      left: 0,
-      top: top,
-      height: h
+      'left': 0,
+      'top': top,
+      'height': h
     });
   });
 
@@ -252,23 +286,40 @@ Cast.prototype.list = function(options){
   return this;
 };
 
+/**
+ * Sort data by field
+ * 
+ * @param  {String} field  
+ * @param  {Number} invert 
+ * @return {Cast}        
+ */
+
 Cast.prototype.sortBy = function(field, invert){
   invert = invert || 1;
+
   this.collection.sort(function(left, right){
-    var leftVal = left.get(field)
-      , rightVal = right.get(field);
+
+    var leftVal = left.get(field);
+    var rightVal = right.get(field);
+
     if (leftVal < rightVal) return (-1 * invert);
     if (leftVal > rightVal) return (1 * invert);
     return 0;
   });
+
   return this;
 };
 
-Cast.prototype.draw = function(options){
-  if (options) this.setOptions(options);
-  if (!this.view) {
-    this.view = new CastView(this);
-  }
+/**
+ * Render Cast Views inside of our wrapper
+ * 
+ * @param  {Function} template 
+ * @return {Cast}          
+ */
+
+Cast.prototype.draw = function(template){
+  this.template = template;
+  if (!this.view) this.view = new CastView(this);
   this.wrapper.innerHTML = '';
   this.view.render();
   this.wrapper.appendChild(this.view.el);

@@ -47,34 +47,45 @@
 	<script>
 		var attributes = [{name: 'ben', age: 28}, {name: 'kit', age: 28}, {name: 'rick', age: 32}, {name: 'kat', age: 33}, {name: 'james', age: 35}, {name: 'jay', age: 35}, {name: 'joe', age: 35}, {name: 'bob', age: 35}, {name: 'carver', age: 35}, {name: 'doogie', age: 35}, {name: 'doug', age: 35}];
 
-		var myGrid = cast({ 
-				wrapper: '#wrapper',
-				template: _.template($('#grid-item-template').html())
-			})
-			.data(attributes, function(attr){
-				return attr.name
-			})
+		var container = document.querySelector('#wrapper');
+		var template = _.template($('#grid-item-template').html());
+
+		var grid = cast(container)
+			.data(attributes, 'name')
 			.sortBy('name')
-			.justify({
-				boxHeight: 50,
-				boxWidth: 50,
-				paddingHeight: 10,
-				paddingWidth: 10
-			});
+			.justify(50, 50, 10, 10)
+			.draw(template);
+
+
+
+		// var myGrid = cast({ 
+		// 		wrapper: container,
+		// 		template: _.template($('#grid-item-template').html())
+		// 	})
+		// 	.data(attributes, function(attr){
+		// 		return attr.name
+		// 	})
+		// 	.sortBy('name')
+		// 	.justify({
+		// 		boxHeight: 50,
+		// 		boxWidth: 50,
+		// 		paddingHeight: 10,
+		// 		paddingWidth: 10
+		// 	});
 	
 
-			myGrid.draw();
+		// 	myGrid.draw();
 
 			$('#name-filter').on('input', function(e){
 				// hello
 			});
 
 			$('#restore').on('click', function(){
-				myGrid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
+				grid.data([{name: 'ben', age: 23}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
 					return attr.name;
 				})
 				.sortBy('name')
-				.justify();
+				.justify(50, 50, 10, 10);
 			});
 
 		
