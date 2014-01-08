@@ -146,7 +146,7 @@ grid.draw(render);
 
 ## Meteor Usage
 
-Include the standalone `cast.js` file in your client-side folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
+See an example app [here](https://github.com/bmcmahen/meteor-cast-example). Include the standalone `cast.js` file in your client-side folder structure, and Meteor should automatically load it into your application. Create a template that will act as your cast wrapper.
 
 ```html
 {{#constant}}
@@ -170,8 +170,7 @@ Template.cast.rendered = function(){
 	var el = document.getElementById('#cast');
 
 	var mycast = cast(el);
-
-	mycast.draw();
+	mycast.draw(renderTemplate);
 
 	this.handle = Meteor.autorun(function(){
 		var videos = Videos.find().fetch();
