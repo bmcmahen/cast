@@ -1075,7 +1075,7 @@ CastView.prototype.setHeight = function(height){
 };
 
 CastView.prototype.renderNew = function(model){
-  var cardView = new CastItemView({ model: model, context: this.context });
+  var cardView = new CastItemView(model, this.context, this.translate);
   this.el.appendChild(cardView.render().el);
   window.setTimeout(function(){
     model.show();
@@ -1092,12 +1092,13 @@ CastView.prototype.removeOld = function(model){
 
 // Cast Item View. Contains one Cast block.
 // Constructor
-var CastItemView = function(options){
-  this.model = options.model;
-  this.context = options.context;
+var CastItemView = function(model, context, translate){
+  this.model = model;
+  this.context = context;
+  this.translate = translate;
   this.el = document.createElement('div');
   this.el.className = 'cast-item';
-  this.template = options.context.template;
+  this.template = context.template;
   if (!this.template) throw new Error('You need to supply a template');
   this.model
     .on('change:attribute', bind(this, this.render))
