@@ -1,6 +1,6 @@
 # Cast.js
 
-Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select a layout mode, supply a template, and get a grid-view. It's vanilla Javascript and it's inspired by [Isotope](https://github.com/desandro/isotope).
+Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select a layout mode, supply a template, and get a grid-view. It's vanilla Javascript and it's inspired by [Isotope](https://github.com/desandro/isotope). It works in IE9+, and IE8 with `bind` and `indexOf` polyfills. 
 
 Check out the [demonstration](http://cast.meteor.com) built with Meteor.
 
