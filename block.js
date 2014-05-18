@@ -26,15 +26,13 @@ module.exports = Block;
 
 function Block(attr, cast){
   this.cast = cast;
-  this.attr = {};
+  this.attr = attr;
   this.pos = {};
-  this.template = cast.template;
   this.el = document.createElement('div');
   this.classes = classes(this.el);
-  this.el.className = 'Cast-item';
+  this.el.className = 'Cast-item hidden';
   this.rendered = false;
-  this.hidden = false;
-  this.set(attr);
+  this.hidden = true;
   this.cast.emit('view-created', this);
 }
 
@@ -95,14 +93,15 @@ Block.prototype.show = function(){
  * @return {Block} 
  */
 
-Block.prototype.render = function(){
+Block.prototype.render = function(templ){
+  if (templ) this.template = templ;
   var tmp = this.template(this.attr, this.el);
   var content = (type(tmp) === 'string') ? domify(tmp) : tmp;
+  this.rendered = true;
   fastdom.write(function(){
     empty(this.el);
-    this.el.appendChild(content);
+    this.el.appendChild(content.cloneNode(true));
     this.cast.emit('view-rendered', this);
-    this.rendered = true;
   }.bind(this));
   return this;
 };

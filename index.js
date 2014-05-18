@@ -24,8 +24,6 @@ function Cast(wrapper, template){
   this.el = document.createElement('div');
   this.el.className = 'Cast';
   this.collection = new Dict();
-  this.collection.on('enter', this.renderNew.bind(this));
-  this.collection.on('exit', this.removeOld.bind(this));
 }
 
 Emitter(Cast.prototype);
@@ -53,8 +51,13 @@ Cast.prototype.data = function(docs, fn) {
     var key = isFn ? fn(docs[i]) : docs[i][fn];
     var model = this.collection.get(key);
     keys.push(key);
-    if (model) model.set(docs[i]);
-    else this.collection.set(key, new Block(docs[i], this));
+    if (model) { 
+      model.set(docs[i]);
+    } else {
+      var block = new Block(docs[i], this, this.template);
+      this.renderNew(block);
+      this.collection.set(key, block);
+    }
   }
 
   // If running .data() multiple times, remove any attributes
@@ -65,6 +68,7 @@ Cast.prototype.data = function(docs, fn) {
       if (keys.indexOf(key) === -1 ) toRemove.push(key);
     });
     for (var x = 0, length = toRemove.length; x < length; x++){
+      this.removeOld(toRemove[x]);
       this.collection.remove(toRemove[x]);
     }
   }
@@ -305,9 +309,11 @@ Cast.prototype.sortBy = function(field, invert){
  */
 
 Cast.prototype.renderNew = function(block){
+  block.render(this.template);
   fastdom.write(function(){
     this.el.appendChild(block.el);
   }.bind(this));
+  fastdom.defer(block.show.bind(block));
 };
 
 /**
@@ -315,12 +321,11 @@ Cast.prototype.renderNew = function(block){
  * @param  {Block} block 
  */
 
-Cast.prototype.removeOld = function(block){
+Cast.prototype.removeOld = function(id){
+  var block = this.collection.get(id);
   fastdom.write(function(){
-    block.hide(function(){
-      block.remove();
-    });
-  }.bind(this));
+    block.hide(function(){ block.remove(); });
+  });
 };
 
 /**
@@ -335,9 +340,17 @@ Cast.prototype.setHeight = function(height){
 };
 
 
+/**
+ * Draw function
+ * @param  {Function} template 
+ * @return {Cast}          
+ */
+
 Cast.prototype.draw = function(template){
   this.template = template;
-  empty(this.wrapper);
-  this.wrapper.appendChild(this.el);
+  fastdom.write(function(){
+    empty(this.wrapper);
+    this.wrapper.appendChild(this.el);
+  }.bind(this));
   return this;
 };
