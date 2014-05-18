@@ -31,18 +31,6 @@ describe('Cast', function(){
     assert(this.cast.wrapperWidth === 500);
   });
 
-  it('should be constructed with a string selector', function(){
-    var c = cast('#cast');
-    assert(c.wrapper);
-    assert(c.wrapperWidth === 500);
-  });
-
-  it('should be optionally constructed only with a width', function(){
-    var c = cast(300);
-    assert(!c.wrapper);
-    assert(c.wrapperWidth === 300);
-  });
-
   describe('#data', function(){
     var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'joe'}];
 
@@ -58,12 +46,6 @@ describe('Cast', function(){
         return attr.name;
       });
       assert(this.cast.collection.length() === 3);
-    });
-
-    it('should set docs without a unique id', function(){
-      this.cast.data(docs);
-      assert(this.cast.collection.length() === 3);
-      assert(this.cast.collection.at(0).get('name') === 'ben');
     });
 
     it('should remove missing docs upon subsequent calls', function(){
@@ -120,14 +102,6 @@ describe('Cast', function(){
       this.cast.add({name: 'kit'}, 'name');
       assert(this.cast.toJSON().length === 2);
       assert(this.cast.toJSON()[1].name === 'kit');
-    });
-
-    it('should add a value without a uid', function(){
-      this.cast.collection.clear();
-      this.cast.add({name: 'ben'});
-      assert(this.cast.collection.length() === 1);
-      this.cast.add({name: 'kit'});
-      assert(this.cast.collection.length() === 2);
     });
 
   });
@@ -221,15 +195,15 @@ describe('Cast', function(){
       this.cast.data([{name: 'ben'}], 'name');
 
       setTimeout(function(){
-        assert($('.cast-item').length === 1);
-        assert($('.cast-item').find('p').text() === 'ben');
+        assert($('.Cast-item').length === 1);
+        assert($('.Cast-item').find('p').text() === 'ben');
         done();
       }, 500);
     });
 
     it('should add a view when new doc is added', function(){
       this.cast.data([{name: 'zoey'}], 'name');
-      assert($('.cast-item').length === 4);
+      assert($('.Cast-item').length === 4);
     });
 
 

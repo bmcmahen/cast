@@ -8,11 +8,11 @@
 		box-sizing: border-box;
 	}
 
-	.cast-view {
+	.Cast {
 		position: relative;
 	}
 
-	.cast-item {
+	.Cast-item {
 		position: absolute;
 		display: block;
 		height: 50px;
@@ -43,18 +43,23 @@
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
 	<script src='http://code.jquery.com/jquery-1.9.1.js'></script>
-	<script src='../dist/cast.js'></script>
+	<script src='../build/build.js'></script>
 	<script>
 		var attributes = [{name: 'ben', age: 28}, {name: 'kit', age: 28}, {name: 'rick', age: 32}, {name: 'kat', age: 33}, {name: 'james', age: 35}, {name: 'jay', age: 35}, {name: 'joe', age: 35}, {name: 'bob', age: 35}, {name: 'carver', age: 35}, {name: 'doogie', age: 35}, {name: 'doug', age: 35}];
 
 		var container = document.querySelector('#wrapper');
 		var template = _.template($('#grid-item-template').html());
 
-		var grid = cast(container)
+		console.log(template);
+
+		var Cast = require('cast');
+		var grid = new Cast(container, template)
 			.data(attributes, 'name')
 			.sortBy('name')
 			.justify(50, 50, 10, 10)
-			.draw(template);
+			.draw();
+
+
 
 		console.log(grid);
 

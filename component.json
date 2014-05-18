@@ -2,23 +2,30 @@
   "name": "cast",
   "repo": "bmcmahen/cast",
   "description": "Create animated grid layouts given an array of attributes.",
-  "version": "0.5.2",
+  "version": "1.0.0",
   "keywords": ["layout", "grid", "isotope"],
   "dependencies": {
     "component/emitter": "*",
     "component/clone": "*",
-    "component/bind": "*",
     "component/type": "*",
     "bmcmahen/ordered-dictionary": "*",
-    "component/indexof": "*",
-    "component/translate": "*"
+    "component/translate": "*",
+    "wilsonpage/fastdom": "*",
+    "component/each": "0.2.3",
+    "component/classes": "1.2.1",
+    "anthonyshort/after-transition": "0.0.4",
+    "yields/empty": "*",
+    "component/domify": "*"
   },
   "development": {
     "component/assert": "*",
     "component/jquery": "*"
   },
+  "styles": ["cast.css"],
   "license": "MIT",
+  "main": "index.js",
   "scripts": [
-    "index.js"
+    "index.js",
+    "block.js"
   ]
 }

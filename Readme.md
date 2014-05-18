@@ -1,6 +1,6 @@
 # Cast.js
 
-Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select your layout mode, and receive grid positions for rendering your own views... or let Cast automatically update and render the views for you. It's vanilla Javascript and it's inspired by [Isotope](https://github.com/desandro/isotope).
+Cast helps you build beautiful, animated grid layouts. Supply an array of attributes, select a layout mode, supply a template, and get a grid-view. It's vanilla Javascript and it's inspired by [Isotope](https://github.com/desandro/isotope).
 
 Check out the [demonstration](http://cast.meteor.com) built with Meteor.
 
@@ -15,7 +15,7 @@ Alternatively, Cast can be used as a [component](https://github.com/component/co
 
 ## API
 
-### new Cast(container)
+### new Cast(container, template)
 
 `container` can either be an Element, Selector String, or a Number. A number should be used when you don't plan to actually use the built in views, in which case you still need to specify the wrapper width.
 
@@ -47,8 +47,6 @@ Calculates the grid as a list, with one object per line.
 
 ### .toJSON()
 
-After running a layout method, calling `.toJSON()` will return the grid item collection with the `top`, `left`, and `hidden` attributes. This can be useful when you want to handle the drawing logic yourself. For example, when working with Meteor it might make more sense to create a Template with {{top}}, {{left}}, and {{hidden}} attributes, that can be fed with a helper that returns the `.toJSON()` data.
-
 	var json = cast.data(docs).justify(40, 40, 10, 10).toJSON();
 
 ### .reset(docs, fn|String)
@@ -75,12 +73,9 @@ Sorts the collection based on a `field`.
 
 	cast.sortBy('name', -1).center(50, 50, 10, 10);
 
-### .draw(template)
+### .draw()
 
-	var template = _.template($('#template').html());
-	cast.data(docs, 'id').center(50, 50, 10, 10).draw(template);
-
-Renders (or rerenders) the collection using the supplied template function. The template function should return an HTML String.
+Simple utility function to append the cast layout to the container element.
 
 ## Events
 
@@ -92,25 +87,6 @@ Renders (or rerenders) the collection using the supplied template function. The 
 ### view-created(view)
 ### view-rendered(view)
 ### view-destroyed(view)
-### wrapper-height(height)
-
-## CSS for animations
-
-The following CSS will provide animations for opacity and positions. You can also choose to animate the `width` and `height` attributes if you're using the dynamic layout mode, but this will signficantly reduce performance in some browsers.
-
-	.cast-item {
-		position: absolute;
-		opacity: 1;
-		-webkit-transition: opacity 0.5s, -webkit-transform 0.5s;
-		-moz-transition: opacity 0.5s, -moz-transform 0.5s;
-		-ms-transition: opacity 0.5s, -ms-transform 0.5s;
-		-o-transition: opacity 0.5s, -o-transform 0.5s;
-	}
-
-	.cast-item.hidden {
-		opacity: 0;
-	}
-
 
 ## Example
 
@@ -127,10 +103,7 @@ var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
 var container = document.getElementById('#wrapper');
 
 // Create our cast
-var grid = cast(container)
-	.data(docs, 'name')
-	.sortBy('name')
-	.justify(50, 50, 10, 10);
+var grid = cast(container, render);
 
 grid.on('view-rendered', function(view){
 	$(view.el)
@@ -141,7 +114,11 @@ grid.on('view-rendered', function(view){
 		});
 });
 
-grid.draw(render);
+grid
+	.data(docs, 'name')
+	.sortBy('name')
+	.justify(50, 50, 10, 10)
+	.draw();
 ```
 
 ## Meteor Usage
@@ -169,8 +146,8 @@ Template.cast.rendered = function(){
 
 	var el = document.getElementById('#cast');
 
-	var mycast = cast(el);
-	mycast.draw(renderTemplate);
+	var mycast = cast(el, renderTemplate);
+	mycast.draw();
 
 	this.handle = Meteor.autorun(function(){
 		var videos = Videos.find().fetch();

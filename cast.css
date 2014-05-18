@@ -1,0 +1,14 @@
+.Cast {
+  position: relative;
+}
+
+.Cast-item {
+  position: absolute;
+  display: block;
+  opacity: 1;
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.Cast-item.hidden {
+  opacity: 0;
+}

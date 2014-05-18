@@ -1,33 +1,32 @@
-// Required Modules.
-var Emitter = require('emitter');
-var clone = require('clone');
-var bind = require('bind');
-var type = require('type');
-var OrderedDictionary = require('ordered-dictionary');
-var indexOf = require('indexof');
-
-
 /**
- * Cast Constructor
+ * Module dependencies
  */
 
-var Cast = function(container){
-  if (!(this instanceof Cast)) return new Cast(container);
+var Emitter = require('emitter');
+var Dict = require('ordered-dictionary');
+var fastdom = require('fastdom');
+var type = require('type');
+var Block = require('./block');
+var empty = require('empty');
 
-  var containerType = type(container);
+module.exports = Cast;
 
-  if (containerType === 'string') {
-    this.wrapper = document.querySelector(container);
-  } else if (containerType === 'element') {
-    this.wrapper = container;
-  } else {
-    this.wrapperWidth = container;
-  }
+/**
+ * Cast
+ * @param {Element} wrapper 
+ */
 
-  if (!this.wrapperWidth) this.wrapperWidth = this.wrapper.clientWidth;
-  this.collection = new OrderedDictionary();
-  this.idCounter = 0;
-};
+function Cast(wrapper, template){
+  if (!(this instanceof Cast)) return new Cast(wrapper, template);
+  this.wrapper = wrapper;
+  this.template = template;
+  this.wrapperWidth = this.wrapper.clientWidth;
+  this.el = document.createElement('div');
+  this.el.className = 'Cast';
+  this.collection = new Dict();
+  this.collection.on('enter', this.renderNew.bind(this));
+  this.collection.on('exit', this.removeOld.bind(this));
+}
 
 Emitter(Cast.prototype);
 
@@ -42,10 +41,7 @@ Emitter(Cast.prototype);
  */
 
 Cast.prototype.data = function(docs, fn) {
-  if (!fn) {
-    this.reset(docs);
-    return this;
-  }
+  if (!fn) throw new Error('Unique id required');
 
   var len = this.collection.length();
   var keys = [];
@@ -66,7 +62,7 @@ Cast.prototype.data = function(docs, fn) {
   if (len) {
     var toRemove = [];
     this.collection.forEach(function(key, model, i){
-      if (indexOf(keys, key) === -1 ) toRemove.push(key);
+      if (keys.indexOf(key) === -1 ) toRemove.push(key);
     });
     for (var x = 0, length = toRemove.length; x < length; x++){
       this.collection.remove(toRemove[x]);
@@ -89,18 +85,6 @@ Cast.prototype.toJSON = function(){
   return json;
 };
 
-/**
- * Provide a uid
- * todo: replace with component
- * 
- * @param  {String} prefix optional
- * @return {String}        
- */
-
-Cast.prototype.uniqueId = function(prefix){
-  var id = ++this.idCounter + '';
-  return prefix ? prefix + id : id;
-};
 
 /**
  * Reset Cast with given docs.
@@ -125,9 +109,10 @@ Cast.prototype.reset = function(docs, fn){
 
 Cast.prototype.add = function(docs, fn){
   if (type(docs) !== 'array') docs = [docs];
-  var isFn = fn && (type(fn) === 'function');
+  if (!fn) throw new Error('Unique id required');
+  var isFn = type(fn) === 'function';
   for (var i = 0, l = docs.length; i < l; i++){
-    var key = fn ? (isFn ? fn(docs[i]) : docs[i][fn]) : this.uniqueId('c');
+    var key = isFn ? fn(docs[i]) : docs[i][fn];
     var val = new Block(docs[i], this);
     this.collection.set(key, val);
   }
@@ -171,13 +156,13 @@ Cast.prototype.justify = function(w, h, pw, ph){
     return w + (c * padding) + ((c - 1) * w);
   };
 
-  this.collection.forEach(function(key, model, i){
+  this.collection.forEach(function(key, block, i){
     var r = Math.floor(i / bpr);
     var c = i % bpr;
     var left = getLeft(c, r);
     var top = ((r * h) + (r + 1) * ph);
 
-    model.set({
+    block.position({
       'left': left,
       'top': top,
       'width': w,
@@ -187,7 +172,7 @@ Cast.prototype.justify = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
-  this.emit('wrapper-height', wrapperHeight);
+  this.setHeight(wrapperHeight);
   return this;
 };
 
@@ -208,13 +193,13 @@ Cast.prototype.center = function(w, h, pw, ph){
   var bpr = Math.floor(cw/(w + pw));
   var mx = (cw - (bpr * w) - (bpr - 1) * pw) * 0.5;
 
-  this.collection.forEach(function(key, model, i){
+  this.collection.forEach(function(key, block, i){
     var r = Math.floor(i / bpr);
     var c = i % bpr;
     var left = mx + (c * (w + pw));
     var top = (r * h) + (r + 1) * ph;
 
-    model.set({
+    block.position({
       'left': left,
       'top': top,
       'width': w,
@@ -224,7 +209,7 @@ Cast.prototype.center = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (h + ph)  + ph;
-  this.emit('wrapper-height', wrapperHeight);
+  this.setHeight(wrapperHeight);
   return this;
 };
 
@@ -249,13 +234,13 @@ Cast.prototype.dynamic = function(w, h, pw, ph){
 
   // XXX This logic is the same as center(). Should we make
   // this a shared function?
-  this.collection.forEach(function(id, model, i){
+  this.collection.forEach(function(id, block, i){
     var r = Math.floor(i / bpr);
     var c = i % bpr;
     var left = mx + (c * (newWidth + pw));
     var top = (r * newHeight) + (r + 1) * ph;
 
-    model.set({
+    block.position({
       'width': newWidth,
       'left': left,
       'top': top,
@@ -265,7 +250,7 @@ Cast.prototype.dynamic = function(w, h, pw, ph){
 
   var t = this.collection.length();
   var wrapperHeight = Math.ceil(t / bpr) * (newHeight + ph)  + ph;
-  this.emit('wrapper-height', wrapperHeight);
+  this.setHeight(wrapperHeight);
   return this;
 };
 
@@ -279,17 +264,16 @@ Cast.prototype.dynamic = function(w, h, pw, ph){
 
 Cast.prototype.list = function(h, ph){
 
-  this.collection.forEach(function(id, model, i){
+  this.collection.forEach(function(id, block, i){
     var top = (h + ph) * i;
-
-    model.set({
+    block.position({
       'left': 0,
       'top': top,
       'height': h
     });
   });
 
-  this.emit('wrapper-height', this.collection.length() * (h + ph));
+  this.setHeight(this.collection.length() * (h + ph));
   return this;
 };
 
@@ -305,10 +289,8 @@ Cast.prototype.sortBy = function(field, invert){
   invert = invert || 1;
 
   this.collection.sort(function(left, right){
-
-    var leftVal = left.get(field);
-    var rightVal = right.get(field);
-
+    var leftVal = left.attr[field];
+    var rightVal = right.attr[field];
     if (leftVal < rightVal) return (-1 * invert);
     if (leftVal > rightVal) return (1 * invert);
     return 0;
@@ -318,173 +300,44 @@ Cast.prototype.sortBy = function(field, invert){
 };
 
 /**
- * Render Cast Views inside of our wrapper
- * 
- * @param  {Function} template 
- * @return {Cast}          
+ * render new block
+ * @param  {Block} block 
  */
+
+Cast.prototype.renderNew = function(block){
+  fastdom.write(function(){
+    this.el.appendChild(block.el);
+  }.bind(this));
+};
+
+/**
+ * remove old block
+ * @param  {Block} block 
+ */
+
+Cast.prototype.removeOld = function(block){
+  fastdom.write(function(){
+    block.hide(function(){
+      block.remove();
+    });
+  }.bind(this));
+};
+
+/**
+ * Set our cast.js height
+ * @param {Number} height 
+ */
+
+Cast.prototype.setHeight = function(height){
+  fastdom.write(function(){
+    this.el.style.height = height + 'px';
+  }.bind(this));
+};
+
 
 Cast.prototype.draw = function(template){
   this.template = template;
-  if (!this.view) this.view = new CastView(this);
-  this.wrapper.innerHTML = '';
-  this.view.render();
-  this.wrapper.appendChild(this.view.el);
+  empty(this.wrapper);
+  this.wrapper.appendChild(this.el);
   return this;
 };
-
-
-// Cast Item Model
-// Events: change:attribute
-// Constructor
-var Block = function(attributes, context){
-  this.context = context;
-  this.attributes = { hidden: true };
-  if (attributes) this.set(attributes);
-};
-
-Emitter(Block.prototype);
-
-// Methods
-Block.prototype.set = function(attr){
-  var changed = false;
-  if (!attr) return;
-  this.previousAttributes = clone(this.attributes);
-
-  for (var key in attr) {
-    if (attr.hasOwnProperty(key)) {
-      this.attributes[key] = attr[key];
-      if (this.attributes[key] !== this.previousAttributes[key]){
-        changed = true;
-      }
-    }
-  }
-  if (changed) this.emit('change:attribute');
-};
-
-Block.prototype.get = function(key){
-  return this.attributes[key];
-};
-
-Block.prototype.destroy = function(){
-  this.emit('destroy');
-};
-
-Block.prototype.hide = function(){
-  this.set({ hidden: true });
-};
-
-Block.prototype.show = function(){
-  this.set({ hidden: false });
-};
-
-Block.prototype.toJSON = function(){
-  return clone(this.attributes);
-};
-
-// Our wrapper view, which renders an array of Cast item views.
-// Constructor
-var CastView = function(context){
-  this.translate = require('translate');
-  this.context = context;
-  this.collection = context.collection;
-  this.el = document.createElement('div');
-  this.el.className = 'cast-view';
-  this.collection.on('enter', bind(this, this.renderNew));
-  this.collection.on('exit', bind(this, this.removeOld));
-  this.context.on('wrapper-height', bind(this, this.setHeight));
-};
-
-// Methods
-CastView.prototype.render = function(){
-  var _this = this;
-  this.collection.forEach(function(key, model, i){
-    _this.renderNew(model);
-  });
-};
-
-CastView.prototype.setHeight = function(height){
-  this.el.style.height = height + 'px';
-};
-
-CastView.prototype.renderNew = function(model){
-  var cardView = new CastItemView(model, this.context, this.translate);
-  this.el.appendChild(cardView.render().el);
-  window.setTimeout(function(){
-    model.show();
-  }, 0);
-};
-
-CastView.prototype.removeOld = function(model){
-  var _this = this;
-  model.hide();
-  window.setTimeout(function(){
-    model.destroy();
-  }, 500);
-};
-
-// Cast Item View. Contains one Cast block.
-// Constructor
-var CastItemView = function(model, context, translate){
-  this.model = model;
-  this.context = context;
-  this.translate = translate;
-  this.el = document.createElement('div');
-  this.el.className = 'cast-item';
-  this.template = context.template;
-  if (!this.template) throw new Error('You need to supply a template');
-  this.model
-    .on('change:attribute', bind(this, this.render))
-    .on('destroy', bind(this, this.remove));
-  this.context.emit('view-created', this);
-};
-
-// Methods
-CastItemView.prototype.render = function(){
-  this.el.innerHTML = this.template(this.model.toJSON());
-  this.changePosition().showOrHide();
-  this.context.emit('view-rendered', this);
-  return this;
-};
-
-CastItemView.prototype.remove = function(){
-  this.model
-    .off('change:attribute')
-    .off('destroy');
-  this.context.emit('view-destroyed', this);
-  this.el.parentNode.removeChild(this.el);
-};
-
-// Should we also use scale3d (like isotope?)
-CastItemView.prototype.changePosition = function(){
-  var top = this.model.get('top');
-  var left = this.model.get('left');
-  var style = this.el.style;
-  var width = this.model.get('width');
-  var height = this.model.get('height');
-
-  style.width = width + 'px';
-  style.height = height + 'px';
-  this.translate(this.el, left, top);
-  return this;
-};
-
-CastItemView.prototype.showOrHide = function(){
-  var _this = this;
-  var el = this.el;
-  var style = el.style;
-
-  if (this.model.get('hidden')) {
-    el.className += ' hidden';
-    el.setAttribute('aria-hidden', true);
-  } else {
-    style.display = 'block';
-    window.setTimeout(function(){
-      el.className = el.className.replace( /(?:^|\s)hidden(?!\S)/g , '');
-    }, 0);
-    el.setAttribute('aria-hidden', false);
-  }
-  return this;
-};
-
-module.exports = Cast;
