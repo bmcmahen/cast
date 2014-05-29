@@ -15,6 +15,8 @@ Alternatively, Cast can be used as a [component](https://github.com/component/co
 ## Example
 
 ```javascript
+var Cast = require('cast');
+
 var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
 var container = document.getElementById('#wrapper');
 
@@ -23,7 +25,7 @@ function render(attr, el, block){
 }
 
 // Create our cast
-var grid = cast(container)
+var grid = new Cast(container)
 	.render(render)
 	.data(docs, 'name')
 	.sortBy('name')

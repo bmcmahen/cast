@@ -62,7 +62,7 @@
 			})
 			.data(attributes, 'name')
 			.sortBy('name')
-			.justify(50, 50, 10, 10)
+			.justify(150, 150, 20, 20)
 			.draw();
 
 
@@ -78,7 +78,7 @@
 					grid.sortBy('name');
 					sorted = true;
 				}
-				grid.justify(50, 50, 10, 10)
+				grid.justify(150, 150, 20, 20)
 			});
 
 			$('#filter').on('click', function(){
@@ -89,7 +89,7 @@
 					grid.data(attributes.slice(2, 7), 'name');
 					filtered = true;
 				}
-				grid.justify(50, 50, 10, 10);
+				grid.justify(150, 150, 20, 20);
 			});
 
 
