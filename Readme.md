@@ -12,12 +12,42 @@ Alternatively, Cast can be used as a [component](https://github.com/component/co
 
 	$ component install bmcmahen/cast
 
+## Example
+
+```javascript
+var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
+var container = document.getElementById('#wrapper');
+
+function render(attr, el, block){
+	el.innerHTML = '<p>' + attr.name + '</p>';
+}
+
+// Create our cast
+var grid = cast(container)
+	.render(render)
+	.data(docs, 'name')
+	.sortBy('name')
+	.justify(50, 50, 10, 10)
+	.draw();
+```
 
 ## API
 
-### new Cast(container, template)
+### new Cast(container)
 
-`container` can either be an Element, Selector String, or a Number. A number should be used when you don't plan to actually use the built in views, in which case you still need to specify the wrapper width.
+`container` should be the element that you want your cast to appear in. 
+
+### .render(fn)
+
+Render will be called whenever a new element is rendered in the cast layout. This should be called __before adding documents to your cast__. For example:
+
+```javascript
+var layout = new Cast(container)
+	.render(function(attr, el, block){
+		el.innerHTML = template(attr);
+	})
+	.data(docs, 'name');
+```
 
 ### .data(docs, Fn|String)
 
@@ -85,41 +115,9 @@ Simple utility function to append the cast layout to the container element.
 
 ### exit(model)
 ### view-created(view)
-### view-rendered(view)
 ### view-destroyed(view)
 
-## Example
 
-This example assumes you are using `cast.js` located in the `dist` folder.
-
-```javascript
-// Render function. This could also be a template engine
-// like Handlebars, Underscore, etc.
-function render(obj){
-	return '<div>' + obj.name + '</div>';
-}
-
-var docs = [{name: 'ben'}, {name: 'kit'}, {name: 'rick'}, {name: 'james'}];
-var container = document.getElementById('#wrapper');
-
-// Create our cast
-var grid = cast(container, render);
-
-grid.on('view-rendered', function(view){
-	$(view.el)
-		.addClass('custom-class')
-		.find('p')
-		.on('click', function(e){
-			alert('hello' + view.model.get('name'));
-		});
-});
-
-grid
-	.data(docs, 'name')
-	.sortBy('name')
-	.justify(50, 50, 10, 10)
-	.draw();
-```
 
 ## Meteor Usage
 
