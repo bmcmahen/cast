@@ -6,9 +6,6 @@ var each = require('each');
 var classes = require('classes');
 var fastdom = require('fastdom');
 var afterTransition = require('after-transition');
-var domify = require('domify');
-var type = require('type');
-var empty = require('empty');
 var clone = require('clone');
 var translate = require('translate');
 
