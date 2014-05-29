@@ -30,15 +30,19 @@
 		opacity: 0;
 	}
 
+	#wrapper {
+		border: 1px #ddd;
+	}
+
 	</style>
 </head>
 <body>
-	<input type='text' id='name-filter'><button id='sort'>sort</button>
-	<button id='restore'>restore</button>
-	<div id='wrapper' style='border: 1px solid; '></div>
+	<button id='sort'>toggle sort</button>
+	<button id='filter'>toggle filter</button>
+	<div id='wrapper'></div>
 
 	<script type='template' id='grid-item-template'>
-	<p> <%= name %> <%= age %> </p>
+		<p> <%= name %> <%= age %> </p>
 	</script>
 
 	<script src='http://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.4.4/underscore-min.js'></script>
@@ -50,10 +54,12 @@
 		var container = document.querySelector('#wrapper');
 		var template = _.template($('#grid-item-template').html());
 
-		console.log(template);
-
+		// Build cast
 		var Cast = require('cast');
-		var grid = new Cast(container, template)
+		var grid = new Cast(container)
+			.render(function(attr, el, block){
+				el.innerHTML = template(attr);
+			})
 			.data(attributes, 'name')
 			.sortBy('name')
 			.justify(50, 50, 10, 10)
@@ -61,39 +67,31 @@
 
 
 
-		console.log(grid);
+			var sorted = false;
+			var filtered = false;
 
-		// create new tests
-
-		// var myGrid = cast({ 
-		// 		wrapper: container,
-		// 		template: _.template($('#grid-item-template').html())
-		// 	})
-		// 	.data(attributes, function(attr){
-		// 		return attr.name
-		// 	})
-		// 	.sortBy('name')
-		// 	.justify({
-		// 		boxHeight: 50,
-		// 		boxWidth: 50,
-		// 		paddingHeight: 10,
-		// 		paddingWidth: 10
-		// 	});
-	
-
-		// 	myGrid.draw();
-
-			$('#name-filter').on('input', function(e){
-				// hello
+			$('#sort').on('click', function(){
+				if (sorted) {
+					grid.sortBy('name', -1);
+					sorted = false;
+				} else {
+					grid.sortBy('name');
+					sorted = true;
+				}
+				grid.justify(50, 50, 10, 10)
 			});
 
-			$('#restore').on('click', function(){
-				grid.data([{name: 'ben', age: 28}, {name: 'kit', age: 500}, {name: 'kat', age: 39}, {name: 'james', age: 35}], function(attr){
-					return attr.name;
-				})
-				.sortBy('name')
-				.justify(50, 50, 10, 10);
+			$('#filter').on('click', function(){
+				if (filtered) {
+					grid.data(attributes, 'name');
+					filtered = false;
+				} else {
+					grid.data(attributes.slice(2, 7), 'name');
+					filtered = true;
+				}
+				grid.justify(50, 50, 10, 10);
 			});
+
 
 		
 	</script>

@@ -16,10 +16,9 @@ module.exports = Cast;
  * @param {Element} wrapper 
  */
 
-function Cast(wrapper, template){
-  if (!(this instanceof Cast)) return new Cast(wrapper, template);
+function Cast(wrapper){
+  if (!(this instanceof Cast)) return new Cast(wrapper);
   this.wrapper = wrapper;
-  this.template = template;
   this.wrapperWidth = this.wrapper.clientWidth;
   this.el = document.createElement('div');
   this.el.className = 'Cast';
@@ -309,11 +308,24 @@ Cast.prototype.sortBy = function(field, invert){
  */
 
 Cast.prototype.renderNew = function(block){
-  block.render(this.template);
+  this.emit('render', block)
   fastdom.write(function(){
     this.el.appendChild(block.el);
   }.bind(this));
   fastdom.defer(block.show.bind(block));
+};
+
+/**
+ * render function
+ * @param  {Function} fn 
+ * @return {Cast}      
+ */
+
+Cast.prototype.render = function(fn){
+  this.on('render', function(block){
+    if (fn) fn(block.attr, block.el, block);
+  }.bind(this));
+  return this;
 };
 
 /**

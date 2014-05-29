@@ -42,19 +42,7 @@ function Block(attr, cast){
  */
 
 Block.prototype.set = function(attr){
-  var changed = false;
-  if (!attr) return;
-
-  var prev = clone(this.attr);
-
-  each(attr, function(key){
-    this.attr[key] = attr[key];
-    if (this.attr[key] !== prev[key]) {
-      changed = true;
-    }
-  }.bind(this));
-
-  if (changed) this.render();
+  this.attr = attr;
 };
 
 /**
@@ -85,24 +73,6 @@ Block.prototype.show = function(){
     this.el.setAttribute('aria-hidden', false);
   }.bind(this));
   this.hidden = false;
-  return this;
-};
-
-/**
- * Render block with template
- * @return {Block} 
- */
-
-Block.prototype.render = function(templ){
-  if (templ) this.template = templ;
-  var tmp = this.template(this.attr, this.el);
-  var content = (type(tmp) === 'string') ? domify(tmp) : tmp;
-  this.rendered = true;
-  fastdom.write(function(){
-    empty(this.el);
-    this.el.appendChild(content.cloneNode(true));
-    this.cast.emit('view-rendered', this);
-  }.bind(this));
   return this;
 };
 
