@@ -4,6 +4,8 @@ Cast helps you build beautiful, animated grid layouts. Supply an array of attrib
 
 Check out the [demonstration](http://cast.meteor.com) built with Meteor.
 
+If you're using React, use [react-cast](http://github.com/bmcmahen/react-cast) instead.
+
 ## Installation
 
 The easiest way to use Cast is to use the `cast.js` located in the `dist` folder, and require this script in your html page. Cast will then be available under the global variable `cast`'. 
